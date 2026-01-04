@@ -48,31 +48,39 @@ Ultimate OSINT & Pentest Toolkit for KALI LINUX - Combines all Kali tools for co
 ## 📦 Installation
 
 ### Quick Install (Kali Linux)
-```bash
+
 ## Clone the repository
+```bash
 git clone https://github.com/yourusername/jsosint.git
 cd jsosint
-
+```
 ## Run the installer
+```bash
 chmod +x install.sh
 ./install.sh
+```
 
 ## Manually Installation Process
 
 ### Install dependencies
+```bash
 pip3 install requests beautifulsoup4 python-whois dnspython colorama
-
+```
 ### Make script executable
+```bash
 chmod +x jsosint.py
+```
 
 ### Create symlink (optional)
+```bash
 sudo ln -s $(pwd)/jsosint.py /usr/local/bin/jsosint
-
+```
 ## Basic Commands
 
 ### Website reconnaissance
+```bash
 jsosint website example.com
-
+```
 ### Person reconnaissance by email
 jsosint person john.doe@company.com
 
@@ -85,7 +93,7 @@ jsosint quick target
 ### Save results to file
 jsosint website example.com -o results.json
 
-## Structure of this Tool
+<!--## Structure of this Tool
 
 `
 jsosint/
@@ -108,12 +116,12 @@ jsosint/
     ├── common.txt       **Common directories/files**
     └── subdomains.txt   **Subdomain wordlist**
 `
-
+-->
 ## Output Examples
 
 ### Website Scan Output
 
-`
+```bash
 [*] TARGET: example.com
 [*] START TIME: 2024-01-15 14:30:00
 ============================================================
@@ -142,10 +150,10 @@ jsosint/
     Subdomains: 23
     Technologies: 1
     Historical Snapshots: 42
-`
+```
 
 ### Person Scan Output
-`
+```bash
 [*] TARGET: johndoe
 [*] START TIME: 2024-01-15 14:35:00
 ============================================================
@@ -162,15 +170,14 @@ jsosint/
     https://www.google.com/search?q="johndoe"
     https://www.peekyou.com/johndoe
     https://www.pipl.com/search/?q=johndoe
-`
+```
 ## 🔄 Updates & Maintenance
 
-`
+```bash
 cd jsosint
 git pull
 pip3 install -r requirements.txt --upgrade
-`
-
+```
 ## Reporting Issues
 Please report bugs and feature requests on the GitHub Issues page.
 
