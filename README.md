@@ -199,7 +199,10 @@ bash ``` git clone https://github.com/mdjahidshah/jsosint.git ```
 bash ``` cd jsosint ```
 bash ``` python3 -m venv venv ```
 bash ``` source venv/bin/activate ```
-bash ``` pip install -r requirements.txt ```
+bash ``` pip3 install -r requirements.txt ```
+bash ``` chmod +x install.sh ```
+bash ``` ./install.sh  ```
+
 
 ## 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-jsosint - Ultimate OSINT Toolkit for Kali Linux
+jsosint - Ultimate OSINT & Pentest Toolkit for Kali Linux
 Combines all Kali tools for complete reconnaissance
 """
 
@@ -13,21 +13,12 @@ from datetime import datetime
 # Import internal modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-try:
-    from modules.website_intel import WebsiteIntel
-    from modules.person_intel import PersonIntel
-    from utils.colors import Colors
-    from utils.kali_tools import KaliTools
-except ImportError:
-    print("Error: Required modules not found.")
-    print("Please ensure all module files are in place:")
-    print("  modules/website_intel.py")
-    print("  modules/person_intel.py")
-    print("  utils/colors.py")
-    print("  utils/kali_tools.py")
-    sys.exit(1)
+from modules.website_intel import WebsiteIntel
+from modules.person_intel import PersonIntel
+from utils.colors import Colors
+from utils.kali_tools import KaliTools
 
-class Jsosint:
+class jsosint:
     """Main jsosint tool class"""
     
     def __init__(self):
@@ -35,15 +26,15 @@ class Jsosint:
         self.banner = f"""
 {self.colors.CYAN}
 ╔══════════════════════════════════════════════════════════╗
-║   ██╗███████╗ ██████╗ ███████╗██╗███╗   ██╗████████╗   ║
-║   ██║██╔════╝██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝   ║
-║   ██║███████╗██║   ██║███████╗██║██╔██╗ ██║   ██║      ║
-║██ ██║╚════██║██║   ██║╚════██║██║██║╚██╗██║   ██║      ║
-║╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║      ║
-║ ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝      ║
+║     ██╗███████╗ ██████╗ ███████╗██╗███╗   ██╗████████╗   ║
+║     ██║██╔════╝██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝   ║
+║     ██║███████╗██║   ██║███████╗██║██╔██╗ ██║   ██║      ║
+║  ██ ██║╚════██║██║   ██║╚════██║██║██║╚██╗██║   ██║      ║
+║  ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║      ║
+║   ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝      ║
 ║                                                          ║
 ║           ULTIMATE OSINT TOOLKIT FOR KALI LINUX          ║
-║       Combines all Kali tools for complete reconnaissance ║
+║      Combines all Kali tools for complete reconnaissance ║
 ╚══════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
@@ -263,7 +254,7 @@ Features:
     
     args = parser.parse_args()
     
-    tool = Jsosint()
+    tool = jsosint()
     
     try:
         if args.mode == 'website':
@@ -272,9 +263,6 @@ Features:
             tool.person_recon(args.target, args)
         elif args.mode == 'quick':
             tool.quick_scan(args.target, args)
-        else:
-            tool.print_banner()
-            parser.print_help()
     
     except KeyboardInterrupt:
         print(f"\n{Colors().RED}[!]{Colors().RESET} Scan interrupted by user")

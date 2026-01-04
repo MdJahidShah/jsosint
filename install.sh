@@ -80,7 +80,7 @@ if [ ! -f "jsosint.py" ]; then
     cat > jsosint.py << 'EOF'
 #!/usr/bin/env python3
 print("Please download the complete jsosint.py file from GitHub")
-print("Visit: https://github.com/yourusername/jsosint")
+print("Visit: https://github.com/mdjahidshah/jsosint")
 EOF
 fi
 

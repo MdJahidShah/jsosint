@@ -8,7 +8,7 @@
     "scan": {
         "timeout": 10,
         "threads": 10,
-        "user_agent": "Mozilla/5.0 (compatible; jsosint/1.0; +https://github.com/yourusername/jsosint)",
+        "user_agent": "Mozilla/5.0 (compatible; jsosint/1.0; +https://github.com/mdjahidshah/jsosint)",
         "rate_limit": 0.5
     },
     
