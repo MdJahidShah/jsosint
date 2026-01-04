@@ -45,13 +45,11 @@ Ultimate OSINT & Pentest Toolkit for KALI LINUX - Combines all Kali tools for co
 - **theHarvester**: Email and host discovery
 - **Sherlock/Maigret**: Social media username search
 
-## 📦 Installation
-
-### Quick Install (Kali Linux)
+## 📦 Installation - Quick Install (Kali Linux)
 
 ## Clone the repository
 ```bash
-git clone https://github.com/yourusername/jsosint.git
+git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
 ```
 ## Run the installer
@@ -82,17 +80,21 @@ sudo ln -s $(pwd)/jsosint.py /usr/local/bin/jsosint
 jsosint website example.com
 ```
 ### Person reconnaissance by email
+```bash
 jsosint person john.doe@company.com
-
+```
 ### Person reconnaissance by username
+```bash
 jsosint person johndoe
-
+```
 ### Quick scan (auto-detects target type)
+```bash
 jsosint quick target
-
+```
 ### Save results to file
+```bash
 jsosint website example.com -o results.json
-
+```
 <!--## Structure of this Tool
 
 `
@@ -192,7 +194,7 @@ Contributions are welcome! Please:
 
 ## Development Setup
 
-**Clone and setup:** `git clone https://github.com/yourusername/jsosint.git `
+**Clone and setup:** `git clone https://github.com/mdjahidshah/jsosint.git `
 `cd jsosint
 python3 -m venv venv
 source venv/bin/activate
@@ -223,15 +225,22 @@ The developers are not responsible for any misuse or damage caused by this progr
 ## Installation & Usage
 
 ### 1. Clone and install
-git clone https://github.com/yourusername/jsosint.git
+```bash
+git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
 chmod +x install.sh
 ./install.sh
-
+```
 ### 2. Test installation
+```bash
 jsosint --help
-
+```
 ### 3. Run a scan
+```bash
 jsosint website example.com
 jsosint person username
 jsosint quick target.com
+```
+
+## Support
+👉 Want to Support then, [Buy Me a Coffee](https://buymeacoffee.com/jahidshah)
