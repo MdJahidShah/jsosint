@@ -1,0 +1,10 @@
+# Core dependencies
+requests>=2.25.0
+beautifulsoup4>=4.9.0
+python-whois>=0.9.0
+dnspython>=2.1.0
+colorama>=0.4.4
+
+# Optional dependencies for advanced features
+# These are already installed in Kali Linux
+# nmap, dirb, nikto, sqlmap, wpscan, etc.

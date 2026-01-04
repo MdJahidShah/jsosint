@@ -1,0 +1,86 @@
+{
+    "jsosint": {
+        "version": "1.0.0",
+        "author": "jsosint Team",
+        "description": "Ultimate OSINT Toolkit Configuration"
+    },
+    
+    "scan": {
+        "timeout": 10,
+        "threads": 10,
+        "user_agent": "Mozilla/5.0 (compatible; jsosint/1.0; +https://github.com/yourusername/jsosint)",
+        "rate_limit": 0.5
+    },
+    
+    "output": {
+        "format": "json",
+        "save_location": "./results",
+        "color_output": true,
+        "verbose": false,
+        "timestamp": true
+    },
+    
+    "modules": {
+        "website": {
+            "enabled": true,
+            "subdomain_scan": true,
+            "port_scan": true,
+            "directory_scan": true,
+            "technology_detection": true,
+            "vulnerability_scan": true,
+            "ssl_check": true,
+            "historical_data": true
+        },
+        "person": {
+            "enabled": true,
+            "social_media": true,
+            "email_validation": true,
+            "breach_check": true,
+            "public_records": true
+        }
+    },
+    
+    "tools": {
+        "nmap": {
+            "args": "-T4 -A -v",
+            "timeout": 30
+        },
+        "dirb": {
+            "wordlist": "/usr/share/dirb/wordlists/common.txt",
+            "extensions": ".php,.html,.txt,.bak"
+        },
+        "gobuster": {
+            "wordlist": "/usr/share/wordlists/dirb/common.txt",
+            "threads": 50
+        },
+        "nikto": {
+            "timeout": 45
+        },
+        "sqlmap": {
+            "timeout": 120
+        }
+    },
+    
+    "wordlists": {
+        "subdomains": "wordlists/subdomains.txt",
+        "directories": "wordlists/common.txt",
+        "usernames": "wordlists/usernames.txt"
+    },
+    
+    "api_keys": {
+        "note": "API keys for enhanced features (optional)",
+        "shodan": "",
+        "censys_id": "",
+        "censys_secret": "",
+        "virustotal": "",
+        "hunterio": "",
+        "breachdirectory": ""
+    },
+    
+    "security": {
+        "proxy": "",
+        "verify_ssl": false,
+        "tor_proxy": "socks5://127.0.0.1:9050",
+        "use_tor": false
+    }
+}
