@@ -194,12 +194,12 @@ Contributions are welcome! Please:
 
 ## Development Setup
 
-**Clone and setup:** `git clone https://github.com/mdjahidshah/jsosint.git `
-`cd jsosint
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-`
+**Clone and setup:**
+bash ``` git clone https://github.com/mdjahidshah/jsosint.git ```
+bash ``` cd jsosint ```
+bash ``` python3 -m venv venv ```
+bash ``` source venv/bin/activate ```
+bash ``` pip install -r requirements.txt ```
 
 ## 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.
