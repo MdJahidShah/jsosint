@@ -1,9 +1,9 @@
 # JSOSINT
-Ultimate OSINT Toolkit for KALI LINUX - Combines all Kali tools for complete reconnaissance
+Ultimate OSINT & Pentest Toolkit for KALI LINUX - Combines all Kali tools for complete reconnaissance
 
-# jsosint - Ultimate OSINT Toolkit for Kali Linux
+# jsosint - Ultimate OSINT & Pentest Toolkit for Kali Linux
 
-![jsosint Banner](https://img.shields.io/badge/jsosint-Ultimate%20OSINT%20Toolkit-blue)
+![jsosint Banner](https://img.shields.io/badge/jsosint-Ultimate%20OSINT%20and%20Toolkit-blue)
 ![Python Version](https://img.shields.io/badge/python-3.6%2B-green)
 ![Platform](https://img.shields.io/badge/platform-Kali%20Linux%20%7C%20Linux-red)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
