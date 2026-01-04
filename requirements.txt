@@ -1,10 +1,40 @@
 # Core dependencies
-requests>=2.25.0
-beautifulsoup4>=4.9.0
+requests>=2.28.0
+beautifulsoup4>=4.11.0
 python-whois>=0.9.0
-dnspython>=2.1.0
-colorama>=0.4.4
+dnspython>=2.3.0
+colorama>=0.4.6
 
-# Optional dependencies for advanced features
-# These are already installed in Kali Linux
-# nmap, dirb, nikto, sqlmap, wpscan, etc.
+# Advanced features
+shodan>=1.28.0
+censys>=2.2.0
+virustotal-api>=1.1.11
+pyshodan>=0.1.5
+social-analyzer>=0.45
+
+# Data processing
+pandas>=1.5.0
+openpyxl>=3.0.0
+pyyaml>=6.0
+ujson>=5.7.0
+
+# Network scanning
+python-nmap>=0.7.1
+scapy>=2.5.0
+netifaces>=0.11.0
+
+# Web scraping
+selenium>=4.8.0
+lxml>=4.9.0
+cloudscraper>=1.2.71
+
+# CLI enhancements
+rich>=13.0.0
+progress>=1.6
+tabulate>=0.9.0
+click>=8.1.0
+
+# Optional (for specific modules)
+geoip2>=4.7.0
+phonenumbers>=8.13.0
+pillow>=9.4.0

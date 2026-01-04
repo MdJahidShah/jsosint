@@ -1,267 +1,404 @@
 #!/usr/bin/env python3
 """
-Person Intelligence Module for jsosint
+Complete Person Intelligence Module
 """
 
 import re
 import socket
 import requests
 import dns.resolver
-from urllib.parse import quote
+import json
+import hashlib
+from urllib.parse import quote, urlparse
 from datetime import datetime
+import concurrent.futures
+import phonenumbers
+from phonenumbers import carrier, geocoder, timezone
+import html
 
-from utils.kali_tools import KaliTools
+from utils.colors import Colors
 
-class PersonIntel:
-    """Complete person intelligence gathering"""
+class PersonRecon:
+    """Complete person reconnaissance"""
     
     def __init__(self, identifier):
         self.identifier = identifier
         self.results = {}
-        self.kali = KaliTools()
-    
-    def full_recon(self):
-        """Perform complete person reconnaissance"""
-        print(f"[*] Starting person reconnaissance on: {self.identifier}")
+        self.colors = Colors()
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
         
-        # Determine target type
-        self.results['type'] = self.detect_target_type()
+        # Determine identifier type
+        self.identifier_type = self._detect_identifier_type()
         
-        # Run appropriate modules
-        if self.results['type'] == 'email':
-            self.results.update(self.email_recon())
-        elif self.results['type'] == 'username':
-            self.results.update(self.username_recon())
-        elif self.results['type'] == 'phone':
-            self.results.update(self.phone_recon())
-        
-        # Common modules
-        self.results['social_media'] = self.find_social_media()
-        self.results['data_breaches'] = self.check_breaches()
-        self.results['public_records'] = self.search_public_records()
-        
-        return self.results
-    
-    def detect_target_type(self):
+    def _detect_identifier_type(self):
         """Detect what type of identifier this is"""
-        # Check if it's an email
+        # Email pattern
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if re.match(email_pattern, self.identifier):
             return 'email'
         
-        # Check if it's a phone number (simplified)
-        phone_pattern = r'^[\d\s\+\(\)-]{10,}$'
-        clean_phone = re.sub(r'[^\d+]', '', self.identifier)
-        if len(clean_phone) >= 10 and re.match(phone_pattern, self.identifier):
-            return 'phone'
+        # Phone number pattern (international)
+        try:
+            parsed = phonenumbers.parse(self.identifier, None)
+            if phonenumbers.is_valid_number(parsed):
+                return 'phone'
+        except:
+            pass
         
-        # Otherwise assume it's a username
+        # IP address pattern
+        ip_pattern = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
+        if re.match(ip_pattern, self.identifier):
+            return 'ip'
+        
+        # Otherwise assume username
         return 'username'
     
-    def email_recon(self):
-        """Reconnaissance for email address"""
-        email = self.identifier
-        results = {'email_recon': {}}
+    def basic_analysis(self):
+        """Basic analysis of the identifier"""
+        analysis = {
+            'identifier': self.identifier,
+            'type': self.identifier_type,
+            'timestamp': datetime.now().isoformat()
+        }
         
-        # Basic validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        is_valid = bool(re.match(email_pattern, email))
-        results['email_recon']['valid_format'] = is_valid
+        if self.identifier_type == 'email':
+            analysis.update(self._analyze_email())
+        elif self.identifier_type == 'phone':
+            analysis.update(self._analyze_phone())
+        elif self.identifier_type == 'ip':
+            analysis.update(self._analyze_ip())
+        else:  # username
+            analysis.update(self._analyze_username())
         
-        if is_valid:
-            # Extract parts
-            username, domain = email.split('@')
-            results['email_recon']['username'] = username
-            results['email_recon']['domain'] = domain
+        return analysis
+    
+    def _analyze_email(self):
+        """Analyze email address"""
+        email_info = {}
+        
+        try:
+            # Parse email
+            username, domain = self.identifier.split('@')
+            email_info['username'] = username
+            email_info['domain'] = domain
+            
+            # Email validation
+            email_info['valid_format'] = True
+            
+            # Check disposable email domains
+            disposable_domains = [
+                'tempmail.com', 'guerrillamail.com', 'mailinator.com',
+                '10minutemail.com', 'yopmail.com', 'trashmail.com',
+                'sharklasers.com', 'grr.la', 'guerrillamail.info',
+                'dispostable.com', 'maildrop.cc', 'getairmail.com'
+            ]
+            
+            email_info['is_disposable'] = any(
+                domain.endswith(d) for d in disposable_domains
+            )
+            
+            # Check domain reputation
+            email_info['domain_has_mx'] = False
+            email_info['domain_has_website'] = False
             
             # Check MX records
             try:
                 resolver = dns.resolver.Resolver()
                 mx_records = resolver.resolve(domain, 'MX')
-                results['email_recon']['mx_records'] = [
-                    str(rdata.exchange) for rdata in mx_records
-                ]
+                email_info['mx_records'] = [str(r.exchange) for r in mx_records]
+                email_info['domain_has_mx'] = len(email_info['mx_records']) > 0
             except:
-                results['email_recon']['mx_records'] = []
+                email_info['mx_records'] = []
             
             # Check if domain has website
             try:
                 socket.gethostbyname(domain)
-                results['email_recon']['domain_has_website'] = True
+                email_info['domain_has_website'] = True
             except:
-                results['email_recon']['domain_has_website'] = False
-            
-            # Check for disposable email domains
-            disposable_domains = [
-                'tempmail.com', 'guerrillamail.com', 'mailinator.com',
-                '10minutemail.com', 'yopmail.com', 'trashmail.com',
-                'sharklasers.com', 'grr.la', 'guerrillamail.info'
-            ]
-            
-            results['email_recon']['is_disposable'] = any(
-                domain.endswith(d) for d in disposable_domains
-            )
+                pass
             
             # Generate username variations
-            results['email_recon']['username_variations'] = self.generate_username_variations(username)
+            email_info['username_variations'] = self._generate_username_variations(username)
             
-            # Try to find person on the domain
-            try:
-                response = requests.get(f"http://{domain}", timeout=10)
-                if username.lower() in response.text.lower():
-                    results['email_recon']['mentioned_on_domain'] = True
-                else:
-                    results['email_recon']['mentioned_on_domain'] = False
-            except:
-                results['email_recon']['mentioned_on_domain'] = False
-        
-        return results
-    
-    def username_recon(self):
-        """Reconnaissance for username"""
-        username = self.identifier
-        results = {'username_recon': {}}
-        
-        # Basic username analysis
-        results['username_recon']['original'] = username
-        results['username_recon']['variations'] = self.generate_username_variations(username)
-        
-        # Check username patterns
-        patterns = {
-            'contains_numbers': bool(re.search(r'\d', username)),
-            'contains_special_chars': bool(re.search(r'[._-]', username)),
-            'all_lowercase': username.islower(),
-            'all_uppercase': username.isupper(),
-            'mixed_case': username != username.lower() and username != username.upper(),
-            'length': len(username)
-        }
-        results['username_recon']['patterns'] = patterns
-        
-        # Try to find real name from common patterns
-        # This is a simple heuristic
-        if '.' in username:
-            parts = username.split('.')
-            if len(parts) == 2 and len(parts[0]) > 1 and len(parts[1]) > 1:
-                results['username_recon']['possible_name'] = f"{parts[0].title()} {parts[1].title()}"
-        
-        # Search with Sherlock (if available)
-        try:
-            sherlock_result = self.kali.sherlock(username)
-            if sherlock_result['success']:
-                # Parse Sherlock output
-                lines = sherlock_result['output'].split('\n')
-                social_profiles = []
-                for line in lines:
-                    if '[*]' in line and 'Found:' in line:
-                        profile = line.split('Found:')[1].strip()
-                        social_profiles.append(profile)
-                results['username_recon']['sherlock_results'] = social_profiles[:10]
-        except:
-            pass
-        
-        # Search with Maigret (if available)
-        try:
-            maigret_result = self.kali.maigret(username)
-            if maigret_result['success']:
-                results['username_recon']['maigret_results'] = maigret_result['output'].split('\n')[:20]
-        except:
-            pass
-        
-        # Try to get GitHub profile info
-        try:
-            github_url = f"https://api.github.com/users/{username}"
-            response = requests.get(github_url, timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                github_info = {
-                    'name': data.get('name'),
-                    'company': data.get('company'),
-                    'location': data.get('location'),
-                    'blog': data.get('blog'),
-                    'bio': data.get('bio'),
-                    'public_repos': data.get('public_repos'),
-                    'followers': data.get('followers'),
-                    'following': data.get('following'),
-                    'created_at': data.get('created_at'),
-                    'updated_at': data.get('updated_at')
-                }
-                results['username_recon']['github_info'] = github_info
-        except:
-            pass
-        
-        return results
-    
-    def phone_recon(self):
-        """Reconnaissance for phone number"""
-        phone = self.identifier
-        results = {'phone_recon': {}}
-        
-        # Clean phone number
-        clean_phone = re.sub(r'[^\d+]', '', phone)
-        results['phone_recon']['clean_number'] = clean_phone
-        results['phone_recon']['original'] = phone
-        
-        # Country code detection (simplified)
-        country_codes = {
-            '1': {'country': 'United States/Canada', 'code': 'US/CA'},
-            '44': {'country': 'United Kingdom', 'code': 'GB'},
-            '91': {'country': 'India', 'code': 'IN'},
-            '61': {'country': 'Australia', 'code': 'AU'},
-            '81': {'country': 'Japan', 'code': 'JP'},
-            '86': {'country': 'China', 'code': 'CN'},
-            '49': {'country': 'Germany', 'code': 'DE'},
-            '33': {'country': 'France', 'code': 'FR'},
-            '7': {'country': 'Russia', 'code': 'RU'},
-            '55': {'country': 'Brazil', 'code': 'BR'}
-        }
-        
-        if clean_phone.startswith('+'):
-            results['phone_recon']['has_country_code'] = True
-            for code, info in country_codes.items():
-                if clean_phone.startswith(f'+{code}'):
-                    results['phone_recon']['country'] = info['country']
-                    results['phone_recon']['country_code'] = info['code']
-                    results['phone_recon']['detected_code'] = code
+            # Email provider analysis
+            common_providers = {
+                'gmail.com': 'Google',
+                'yahoo.com': 'Yahoo',
+                'outlook.com': 'Microsoft',
+                'hotmail.com': 'Microsoft',
+                'icloud.com': 'Apple',
+                'aol.com': 'AOL',
+                'protonmail.com': 'ProtonMail',
+                'zoho.com': 'Zoho',
+                'mail.com': 'Mail.com',
+                'yandex.com': 'Yandex'
+            }
+            
+            for provider_domain, provider_name in common_providers.items():
+                if domain.endswith(provider_domain):
+                    email_info['provider'] = provider_name
                     break
-        else:
-            results['phone_recon']['has_country_code'] = False
+            
+            # Check for patterns in username
+            patterns = {
+                'contains_numbers': bool(re.search(r'\d', username)),
+                'contains_dots': '.' in username,
+                'contains_underscores': '_' in username,
+                'contains_dashes': '-' in username,
+                'all_lowercase': username.islower(),
+                'length': len(username),
+                'possible_name': self._extract_possible_name(username)
+            }
+            email_info['patterns'] = patterns
+            
+            # Generate Gravatar hash
+            email_hash = hashlib.md5(self.identifier.strip().lower().encode()).hexdigest()
+            email_info['gravatar_hash'] = email_hash
+            email_info['gravatar_url'] = f"https://www.gravatar.com/avatar/{email_hash}"
+            
+        except Exception as e:
+            email_info['error'] = str(e)
         
-        # Check if it's a valid length
-        local_number = clean_phone.replace('+', '')
-        results['phone_recon']['valid_length'] = 10 <= len(local_number) <= 15
-        
-        # Generate search links
-        search_links = [
-            f"https://www.google.com/search?q=\"{clean_phone}\"",
-            f"https://www.whitepages.com/phone/{clean_phone}",
-            f"https://www.spokeo.com/{clean_phone}",
-            f"https://www.truepeoplesearch.com/result?phoneno={clean_phone}",
-            f"https://thatsthem.com/phone/{clean_phone}"
-        ]
-        results['phone_recon']['search_links'] = search_links
-        
-        # Check for VoIP services (simplified)
-        voip_patterns = {
-            'Google Voice': r'^\d{3}555\d{4}$',
-            'Skype': r'^\+',
-            'WhatsApp': r'^\+\d{1,3}\d{9,15}$'
-        }
-        
-        detected_services = []
-        for service, pattern in voip_patterns.items():
-            if re.match(pattern, clean_phone):
-                detected_services.append(service)
-        
-        if detected_services:
-            results['phone_recon']['possible_voip'] = detected_services
-        
-        return results
+        return email_info
     
-    def generate_username_variations(self, username):
-        """Generate username variations for comprehensive searching"""
+    def _analyze_phone(self):
+        """Analyze phone number"""
+        phone_info = {}
+        
+        try:
+            # Parse phone number
+            parsed = phonenumbers.parse(self.identifier)
+            
+            phone_info = {
+                'valid': phonenumbers.is_valid_number(parsed),
+                'format_international': phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL),
+                'format_national': phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.NATIONAL),
+                'format_e164': phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164),
+                'country_code': parsed.country_code,
+                'national_number': parsed.national_number,
+                'extension': parsed.extension
+            }
+            
+            # Get carrier info
+            try:
+                carrier_name = carrier.name_for_number(parsed, "en")
+                if carrier_name:
+                    phone_info['carrier'] = carrier_name
+            except:
+                pass
+            
+            # Get geographic info
+            try:
+                region = geocoder.description_for_number(parsed, "en")
+                if region:
+                    phone_info['region'] = region
+            except:
+                pass
+            
+            # Get timezone
+            try:
+                timezones = timezone.time_zones_for_number(parsed)
+                if timezones:
+                    phone_info['timezones'] = timezones
+            except:
+                pass
+            
+            # Check if mobile
+            phone_info['is_mobile'] = phonenumbers.number_type(parsed) == phonenumbers.PhoneNumberType.MOBILE
+            
+            # Number type
+            number_types = {
+                phonenumbers.PhoneNumberType.MOBILE: 'Mobile',
+                phonenumbers.PhoneNumberType.FIXED_LINE: 'Fixed Line',
+                phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE: 'Fixed Line or Mobile',
+                phonenumbers.PhoneNumberType.TOLL_FREE: 'Toll Free',
+                phonenumbers.PhoneNumberType.PREMIUM_RATE: 'Premium Rate',
+                phonenumbers.PhoneNumberType.SHARED_COST: 'Shared Cost',
+                phonenumbers.PhoneNumberType.VOIP: 'VoIP',
+                phonenumbers.PhoneNumberType.PERSONAL_NUMBER: 'Personal Number',
+                phonenumbers.PhoneNumberType.PAGER: 'Pager',
+                phonenumbers.PhoneNumberType.UAN: 'UAN',
+                phonenumbers.PhoneNumberType.VOICEMAIL: 'Voicemail',
+                phonenumbers.PhoneNumberType.UNKNOWN: 'Unknown'
+            }
+            
+            num_type = phonenumbers.number_type(parsed)
+            phone_info['number_type'] = number_types.get(num_type, 'Unknown')
+            
+            # Generate search links
+            clean_number = self.identifier.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+            phone_info['search_links'] = [
+                f"https://www.google.com/search?q=\"{clean_number}\"",
+                f"https://www.whitepages.com/phone/{clean_number}",
+                f"https://www.spokeo.com/{clean_number}",
+                f"https://www.truepeoplesearch.com/result?phoneno={clean_number}",
+                f"https://thatsthem.com/phone/{clean_number}",
+                f"https://www.zabasearch.com/phone/{clean_number}"
+            ]
+            
+        except Exception as e:
+            phone_info['error'] = str(e)
+        
+        return phone_info
+    
+    def _analyze_ip(self):
+        """Analyze IP address"""
+        ip_info = {}
+        
+        try:
+            import ipaddress
+            
+            ip_obj = ipaddress.ip_address(self.identifier)
+            
+            ip_info = {
+                'version': 'IPv4' if ip_obj.version == 4 else 'IPv6',
+                'is_private': ip_obj.is_private,
+                'is_reserved': ip_obj.is_reserved,
+                'is_multicast': ip_obj.is_multicast,
+                'is_global': ip_obj.is_global,
+                'is_loopback': ip_obj.is_loopback,
+                'is_link_local': ip_obj.is_link_local
+            }
+            
+            # Try to get geolocation
+            try:
+                response = self.session.get(f"http://ip-api.com/json/{self.identifier}", timeout=5)
+                if response.status_code == 200:
+                    geo_data = response.json()
+                    if geo_data.get('status') == 'success':
+                        ip_info['geolocation'] = {
+                            'country': geo_data.get('country'),
+                            'countryCode': geo_data.get('countryCode'),
+                            'region': geo_data.get('regionName'),
+                            'city': geo_data.get('city'),
+                            'zip': geo_data.get('zip'),
+                            'lat': geo_data.get('lat'),
+                            'lon': geo_data.get('lon'),
+                            'timezone': geo_data.get('timezone'),
+                            'isp': geo_data.get('isp'),
+                            'org': geo_data.get('org'),
+                            'as': geo_data.get('as')
+                        }
+            except:
+                pass
+            
+            # Try to get reverse DNS
+            try:
+                hostname = socket.gethostbyaddr(self.identifier)[0]
+                ip_info['reverse_dns'] = hostname
+            except:
+                ip_info['reverse_dns'] = None
+            
+            # Threat intelligence links
+            ip_info['threat_intel_links'] = [
+                f"https://www.virustotal.com/gui/ip-address/{self.identifier}",
+                f"https://www.abuseipdb.com/check/{self.identifier}",
+                f"https://otx.alienvault.com/indicator/ip/{self.identifier}",
+                f"https://www.shodan.io/host/{self.identifier}",
+                f"https://censys.io/ipv4/{self.identifier}",
+                f"https://www.threatcrowd.org/ip.php?ip={self.identifier}"
+            ]
+            
+        except Exception as e:
+            ip_info['error'] = str(e)
+        
+        return ip_info
+    
+    def _analyze_username(self):
+        """Analyze username"""
+        username_info = {}
+        
+        try:
+            username = self.identifier
+            
+            username_info = {
+                'username': username,
+                'length': len(username),
+                'lowercase': username.lower(),
+                'uppercase': username.upper()
+            }
+            
+            # Pattern analysis
+            patterns = {
+                'contains_numbers': bool(re.search(r'\d', username)),
+                'contains_letters': bool(re.search(r'[a-zA-Z]', username)),
+                'contains_special_chars': bool(re.search(r'[._-]', username)),
+                'all_lowercase': username.islower(),
+                'all_uppercase': username.isupper(),
+                'starts_with_number': username[0].isdigit() if username else False,
+                'ends_with_number': username[-1].isdigit() if username else False,
+                'only_alphanumeric': username.isalnum(),
+                'has_spaces': ' ' in username
+            }
+            username_info['patterns'] = patterns
+            
+            # Extract possible name
+            possible_name = self._extract_possible_name(username)
+            if possible_name:
+                username_info['possible_name'] = possible_name
+            
+            # Generate variations
+            username_info['variations'] = self._generate_username_variations(username)
+            
+            # Common username patterns
+            common_patterns = [
+                'first.last',
+                'firstlast',
+                'f.last',
+                'lastf',
+                'firstl',
+                'flast'
+            ]
+            
+            for pattern in common_patterns:
+                if '.' in username and len(username.split('.')) == 2:
+                    parts = username.split('.')
+                    username_info['pattern_detected'] = 'first.last'
+                    username_info['first_name_guess'] = parts[0].capitalize()
+                    username_info['last_name_guess'] = parts[1].capitalize()
+                    break
+            
+            # Check if it's a common handle
+            common_handles = ['admin', 'root', 'test', 'user', 'demo', 'guest']
+            if username.lower() in common_handles:
+                username_info['is_common_handle'] = True
+                username_info['common_handle_type'] = 'System/Test Account'
+            
+        except Exception as e:
+            username_info['error'] = str(e)
+        
+        return username_info
+    
+    def _extract_possible_name(self, text):
+        """Try to extract a possible name from text"""
+        # Common patterns
+        patterns = [
+            (r'^([a-z]+)\.([a-z]+)$', '{first} {last}'),  # first.last
+            (r'^([a-z]+)([a-z]+)$', '{first} {last}'),    # firstlast (if both parts > 2 chars)
+            (r'^([a-z])\.?([a-z]+)$', '{first_initial} {last}'),  # f.last or flast
+        ]
+        
+        text_lower = text.lower()
+        
+        for pattern, format_str in patterns:
+            match = re.match(pattern, text_lower)
+            if match:
+                groups = match.groups()
+                if len(groups) == 2:
+                    first = groups[0].capitalize() if len(groups[0]) > 1 else groups[0].upper() + '.'
+                    last = groups[1].capitalize()
+                    return format_str.format(first=first, last=last, first_initial=first)
+        
+        return None
+    
+    def _generate_username_variations(self, username):
+        """Generate username variations"""
         variations = set()
         
-        # Original
+        # Original variations
         variations.add(username)
         variations.add(username.lower())
         variations.add(username.upper())
@@ -274,8 +411,9 @@ class PersonIntel:
             variations.add(clean.upper())
         
         # Common prefixes and suffixes
-        prefixes = ['the', 'real', 'official', 'mr', 'ms', 'dr', 'prof']
-        suffixes = ['123', '2024', 'official', 'real', 'tv', 'hd', 'gamer', 'pro', 'x', 'xx']
+        prefixes = ['the', 'real', 'official', 'mr', 'ms', 'dr', 'prof', 'im', 'iam']
+        suffixes = ['123', '2024', '2023', 'official', 'real', 'tv', 'hd', 'gamer', 
+                   'pro', 'x', 'xx', '69', '420', '007', '99', '88', '1234', '1']
         
         for prefix in prefixes:
             variations.add(f"{prefix}{username}")
@@ -298,138 +436,324 @@ class PersonIntel:
         
         # Common patterns
         if len(username) > 3:
-            variations.add(username[:3])
-            variations.add(username[-3:])
+            variations.add(username[:3])  # First 3 chars
+            variations.add(username[-3:])  # Last 3 chars
+            variations.add(username[:1] + username[-1:])  # First and last
         
-        return list(variations)[:20]  # Limit to 20 variations
+        # Add numbers
+        for i in range(1, 10):
+            variations.add(f"{username}{i}")
+            variations.add(f"{username}_{i}")
+            variations.add(f"{username}0{i}")
+        
+        return list(variations)[:50]  # Limit to 50 variations
     
-    def find_social_media(self):
-        """Find social media profiles"""
-        social = {}
+    def email_analysis(self):
+        """Comprehensive email analysis"""
+        if self.identifier_type != 'email':
+            return {'error': 'Identifier is not an email address'}
         
-        # Determine username to search
-        if self.results['type'] == 'email':
-            username = self.identifier.split('@')[0]
-        else:
-            username = self.identifier
+        email_info = self._analyze_email()
         
-        # List of social media platforms to check
-        platforms = {
-            'Facebook': f"https://facebook.com/{username}",
-            'Twitter': f"https://twitter.com/{username}",
-            'Instagram': f"https://instagram.com/{username}",
-            'LinkedIn': f"https://linkedin.com/in/{username}",
-            'GitHub': f"https://github.com/{username}",
-            'Reddit': f"https://reddit.com/user/{username}",
-            'YouTube': f"https://youtube.com/@{username}",
-            'TikTok': f"https://tiktok.com/@{username}",
-            'Pinterest': f"https://pinterest.com/{username}",
-            'Telegram': f"https://t.me/{username}",
-            'Keybase': f"https://keybase.io/{username}",
-            'Snapchat': f"https://snapchat.com/add/{username}",
-            'Twitch': f"https://twitch.tv/{username}",
-            'Medium': f"https://medium.com/@{username}",
-            'Dev.to': f"https://dev.to/{username}",
-            'Hashnode': f"https://hashnode.com/@{username}",
-            'Behance': f"https://behance.net/{username}",
-            'Dribbble': f"https://dribbble.com/{username}",
-            'Flickr': f"https://flickr.com/people/{username}"
-        }
+        # Additional email-specific checks
+        try:
+            # Check email deliverability (simplified)
+            username, domain = self.identifier.split('@')
+            
+            # Check common email services
+            email_services = {
+                'gmail.com': {'api': False, 'webmail': 'https://mail.google.com'},
+                'yahoo.com': {'api': False, 'webmail': 'https://mail.yahoo.com'},
+                'outlook.com': {'api': False, 'webmail': 'https://outlook.live.com'},
+                'hotmail.com': {'api': False, 'webmail': 'https://outlook.live.com'},
+                'icloud.com': {'api': False, 'webmail': 'https://www.icloud.com/mail'},
+                'aol.com': {'api': False, 'webmail': 'https://mail.aol.com'},
+                'protonmail.com': {'api': False, 'webmail': 'https://mail.protonmail.com'}
+            }
+            
+            for service_domain, info in email_services.items():
+                if domain.endswith(service_domain):
+                    email_info['email_service'] = service_domain
+                    email_info['webmail_url'] = info['webmail']
+                    break
+            
+            # Check for email patterns in breaches
+            email_info['breach_check_note'] = 'Use --breaches flag for detailed breach checking'
+            
+            # Generate OSINT search links
+            encoded_email = quote(self.identifier)
+            email_info['osint_links'] = [
+                f"https://www.google.com/search?q=\"{self.identifier}\"",
+                f"https://epieos.com/?q={encoded_email}",
+                f"https://www.thatsthem.com/email/{encoded_email}",
+                f"https://www.spokeo.com/email-search?q={encoded_email}",
+                f"https://www.peekyou.com/{encoded_email}",
+                f"https://haveibeenpwned.com/account/{encoded_email}"
+            ]
+            
+            # Check for social media with email
+            email_info['social_with_email'] = [
+                f"https://www.facebook.com/search/people/?q={encoded_email}",
+                f"https://www.linkedin.com/sales/gmail/profile/viewByEmail/{encoded_email}",
+                f"https://twitter.com/search?q={encoded_email}&src=typed_query"
+            ]
+            
+        except Exception as e:
+            email_info['analysis_error'] = str(e)
         
-        # Check each platform
-        for platform, url in platforms.items():
-            try:
-                response = requests.head(url, timeout=5, allow_redirects=True)
-                if response.status_code < 400:
-                    social[platform] = {
-                        'found': True,
-                        'url': url,
-                        'status_code': response.status_code
-                    }
-                else:
-                    social[platform] = {
-                        'found': False,
-                        'url': url,
-                        'status_code': response.status_code
-                    }
-            except Exception as e:
-                social[platform] = {
-                    'found': False,
-                    'url': url,
-                    'error': str(e)
-                }
-        
-        return social
+        return email_info
     
     def check_breaches(self):
         """Check for data breaches"""
-        # Note: For actual breach checking, you would integrate with HaveIBeenPwned API
-        # This is a placeholder implementation
         breaches = {
-            'note': 'For actual breach checking, integrate with HaveIBeenPwned API',
-            'simulated_check': {
-                'breaches_found': 0,
-                'sources': ['HaveIBeenPwned', 'DeHashed', 'BreachDirectory'],
-                'recommendation': 'Use --breach option with API key for real checks'
-            },
-            'search_links': [
-                f"https://haveibeenpwned.com/account/{quote(self.identifier)}",
-                f"https://dehashed.com/search?query={quote(self.identifier)}",
-                f"https://breachdirectory.org/?q={quote(self.identifier)}"
-            ]
+            'found': False,
+            'breaches': [],
+            'sources_checked': [],
+            'note': 'For detailed breach data, API keys may be required'
         }
         
-        # If it's an email, add more specific links
-        if self.results['type'] == 'email':
-            breaches['search_links'].extend([
+        try:
+            # Have I Been Pwned (public API, rate limited)
+            try:
+                # Hash the email for privacy
+                email_hash = hashlib.sha1(self.identifier.lower().encode()).hexdigest().upper()
+                prefix = email_hash[:5]
+                
+                response = self.session.get(
+                    f"https://api.pwnedpasswords.com/range/{prefix}",
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    hashes = response.text.split('\n')
+                    for line in hashes:
+                        if line.startswith(email_hash[5:]):
+                            count = line.split(':')[1].strip()
+                            breaches['found'] = True
+                            breaches['breaches'].append({
+                                'source': 'Have I Been Pwned',
+                                'count': int(count),
+                                'note': 'Password exposed in data breaches'
+                            })
+                            break
+                
+                breaches['sources_checked'].append('Have I Been Pwned')
+                
+            except Exception as e:
+                breaches['hibp_error'] = str(e)
+            
+            # DeHashed (would require API key)
+            breaches['dehashed_note'] = 'DeHashed requires API key for search'
+            
+            # Generate search links for manual checking
+            encoded_identifier = quote(self.identifier)
+            breaches['manual_check_links'] = [
                 f"https://www.google.com/search?q=\"{self.identifier}\"+data+breach",
-                f"https://www.google.com/search?q=\"{self.identifier}\"+leaked"
-            ])
+                f"https://www.google.com/search?q=\"{self.identifier}\"+leaked",
+                f"https://www.google.com/search?q=\"{self.identifier}\"+password+leak",
+                f"https://dehashed.com/search?query={encoded_identifier}",
+                f"https://breachdirectory.org/?q={encoded_identifier}",
+                f"https://leakcheck.io/search?q={encoded_identifier}"
+            ]
+            
+            # Common breach databases
+            breaches['breach_databases'] = [
+                'Have I Been Pwned',
+                'DeHashed',
+                'BreachDirectory',
+                'LeakCheck',
+                'We Leak Info',
+                'Snusbase'
+            ]
+            
+        except Exception as e:
+            breaches['error'] = str(e)
         
         return breaches
     
     def search_public_records(self):
         """Search public records"""
         records = {
-            'search_links': [],
-            'note': 'These are public search links. Manual verification required.'
+            'search_engines': [],
+            'people_search': [],
+            'court_records': [],
+            'property_records': [],
+            'business_records': [],
+            'note': 'These are search links for manual investigation'
         }
         
-        identifier_encoded = quote(self.identifier)
-        
-        if self.results['type'] == 'email':
-            records['search_links'] = [
+        try:
+            encoded = quote(self.identifier)
+            
+            # General search engines
+            records['search_engines'] = [
                 f"https://www.google.com/search?q=\"{self.identifier}\"",
-                f"https://www.spokeo.com/email-search?q={identifier_encoded}",
-                f"https://thatsthem.com/email/{identifier_encoded}",
-                f"https://www.peekyou.com/{identifier_encoded}",
-                f"https://www.pipl.com/search/?q={identifier_encoded}"
+                f"https://www.bing.com/search?q=\"{self.identifier}\"",
+                f"https://duckduckgo.com/?q=\"{self.identifier}\"",
+                f"https://yandex.com/search/?text=\"{self.identifier}\""
             ]
-        
-        elif self.results['type'] == 'phone':
-            clean_phone = re.sub(r'[^\d+]', '', self.identifier)
-            records['search_links'] = [
-                f"https://www.google.com/search?q=\"{clean_phone}\"",
-                f"https://www.whitepages.com/phone/{clean_phone}",
-                f"https://www.spokeo.com/{clean_phone}",
-                f"https://www.truepeoplesearch.com/result?phoneno={clean_phone}",
-                f"https://thatsthem.com/phone/{clean_phone}"
+            
+            # People search engines
+            records['people_search'] = [
+                f"https://www.spokeo.com/{encoded}",
+                f"https://www.whitepages.com/name/{encoded}",
+                f"https://www.intelius.com/people-search/{encoded}",
+                f"https://www.peekyou.com/{encoded}",
+                f"https://www.pipl.com/search/?q={encoded}",
+                f"https://www.zabasearch.com/people/{encoded}",
+                f"https://www.truepeoplesearch.com/results?name={encoded}",
+                f"https://www.instantcheckmate.com/search/?q={encoded}",
+                f"https://www.beenverified.com/people/{encoded}"
             ]
-        
-        else:  # username
-            records['search_links'] = [
-                f"https://www.google.com/search?q=\"{self.identifier}\"",
-                f"https://www.peekyou.com/{identifier_encoded}",
-                f"https://www.pipl.com/search/?q={identifier_encoded}",
-                f"https://www.zabasearch.com/people/{identifier_encoded}",
-                f"https://www.411.com/name/{identifier_encoded}"
+            
+            # Court and legal records (US specific)
+            records['court_records'] = [
+                "https://www.pacer.gov/ (Federal Court Records)",
+                "https://unicourt.com/",
+                "https://www.courthousenews.com/",
+                "https://www.findlaw.com/case-law.html"
             ]
-        
-        # Add general people search engines
-        records['search_links'].extend([
-            f"https://www.intelius.com/people-search/{identifier_encoded}",
-            f"https://www.instantcheckmate.com/search/?q={identifier_encoded}",
-            f"https://www.beenverified.com/people/{identifier_encoded}"
-        ])
+            
+            # Property records
+            records['property_records'] = [
+                "https://www.zillow.com/",
+                "https://www.realtor.com/",
+                "https://www.redfin.com/",
+                "https://www.trulia.com/"
+            ]
+            
+            # Business records
+            records['business_records'] = [
+                "https://opencorporates.com/",
+                "https://www.bloomberg.com/professional/",
+                "https://www.sec.gov/edgar/searchedgar/companysearch.html",
+                "https://www.dnb.com/"
+            ]
+            
+            # Specialized OSINT tools
+            records['osint_tools'] = [
+                "https://osintframework.com/",
+                "https://start.me/p/wMdQMQ/osint",
+                "https://github.com/jivoi/awesome-osint",
+                "https://inteltechniques.com/tools/",
+                "https://www.osintcombine.com/"
+            ]
+            
+            # Social media deep search
+            if self.identifier_type == 'username':
+                records['social_deep_search'] = [
+                    f"https://whatsmyname.app/?q={encoded}",
+                    f"https://namechk.com/?u={encoded}",
+                    f"https://checkusernames.com/",
+                    f"https://knowem.com/checkusernames.php"
+                ]
+            
+        except Exception as e:
+            records['error'] = str(e)
         
         return records
+    
+    def find_associated_accounts(self):
+        """Find accounts associated with the identifier"""
+        accounts = {
+            'github': [],
+            'gitlab': [],
+            'bitbucket': [],
+            'stack_overflow': [],
+            'reddit': [],
+            'hackernews': [],
+            'product_hunt': [],
+            'other_platforms': []
+        }
+        
+        try:
+            username = self.identifier if self.identifier_type == 'username' else self.identifier.split('@')[0]
+            
+            # Developer platforms
+            dev_platforms = [
+                ('GitHub', f'https://api.github.com/users/{username}', 'login'),
+                ('GitLab', f'https://gitlab.com/api/v4/users?username={username}', 'username'),
+                ('Bitbucket', f'https://api.bitbucket.org/2.0/users/{username}', 'username'),
+                ('StackOverflow', f'https://api.stackexchange.com/2.3/users?order=desc&sort=reputation&inname={username}&site=stackoverflow', 'display_name')
+            ]
+            
+            for platform_name, api_url, field_name in dev_platforms:
+                try:
+                    response = self.session.get(api_url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        if platform_name == 'GitHub':
+                            if 'login' in data:
+                                accounts['github'].append({
+                                    'username': data['login'],
+                                    'name': data.get('name'),
+                                    'company': data.get('company'),
+                                    'blog': data.get('blog'),
+                                    'location': data.get('location'),
+                                    'email': data.get('email'),
+                                    'hireable': data.get('hireable'),
+                                    'bio': data.get('bio'),
+                                    'public_repos': data.get('public_repos'),
+                                    'followers': data.get('followers'),
+                                    'following': data.get('following'),
+                                    'created_at': data.get('created_at'),
+                                    'updated_at': data.get('updated_at'),
+                                    'url': data.get('html_url')
+                                })
+                        
+                        elif platform_name == 'GitLab':
+                            if data and isinstance(data, list) and len(data) > 0:
+                                user = data[0]
+                                accounts['gitlab'].append({
+                                    'username': user.get('username'),
+                                    'name': user.get('name'),
+                                    'state': user.get('state'),
+                                    'avatar_url': user.get('avatar_url'),
+                                    'web_url': user.get('web_url'),
+                                    'created_at': user.get('created_at')
+                                })
+                
+                except Exception as e:
+                    accounts[f'{platform_name.lower()}_error'] = str(e)
+            
+            # Other platforms (manual check links)
+            accounts['other_platforms'] = [
+                {'name': 'Reddit', 'url': f'https://www.reddit.com/user/{username}'},
+                {'name': 'Hacker News', 'url': f'https://news.ycombinator.com/user?id={username}'},
+                {'name': 'Product Hunt', 'url': f'https://www.producthunt.com/@{username}'},
+                {'name': 'Keybase', 'url': f'https://keybase.io/{username}'},
+                {'name': 'Dev.to', 'url': f'https://dev.to/{username}'},
+                {'name': 'Medium', 'url': f'https://medium.com/@{username}'},
+                {'name': 'Hashnode', 'url': f'https://hashnode.com/@{username}'},
+                {'name': 'Behance', 'url': f'https://www.behance.net/{username}'},
+                {'name': 'Dribbble', 'url': f'https://dribbble.com/{username}'},
+                {'name': 'Flickr', 'url': f'https://www.flickr.com/people/{username}'}
+            ]
+            
+        except Exception as e:
+            accounts['error'] = str(e)
+        
+        return accounts
+    
+    def generate_report(self, format='json'):
+        """Generate comprehensive report"""
+        report = {
+            'identifier': self.identifier,
+            'type': self.identifier_type,
+            'timestamp': datetime.now().isoformat(),
+            'analysis': self.basic_analysis()
+        }
+        
+        # Add additional sections if available
+        if self.identifier_type == 'email':
+            report['email_analysis'] = self.email_analysis()
+        
+        report['breach_check'] = self.check_breaches()
+        report['public_records'] = self.search_public_records()
+        
+        if self.identifier_type in ['username', 'email']:
+            username = self.identifier if self.identifier_type == 'username' else self.identifier.split('@')[0]
+            report['associated_accounts'] = self.find_associated_accounts()
+        
+        return report

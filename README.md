@@ -99,24 +99,31 @@ jsosint website example.com -o results.json
 
 `
 jsosint/
-├── jsosint.py           **Main tool executable**
-├── requirements.txt     ** Python dependencies**
-├── install.sh           ** Installation script**
-├── README.md            ** This file**
-├── LICENSE              ** MIT License**
+├── jsosint.py              # Main tool (updated)
+├── requirements.txt        # Dependencies (updated)
+├── install.sh             # Installation script
+├── README.md              # Documentation
+├── LICENSE                # MIT License
 ├── config/
-│   └── config.json      ** Configuration file**
+│   ├── config.json       # Main configuration
+│   └── wordlists/        # Wordlists directory
 ├── modules/
 │   ├── __init__.py
-│   ├── website_intel.py ** Website intelligence module**
-│   └── person_intel.py  ** Person intelligence module**
+│   ├── website_intel.py  # Enhanced website recon
+│   ├── person_intel.py   # Enhanced person recon
+│   ├── network_intel.py  # Network scanning
+│   ├── social_intel.py   # Social media OSINT
+│   └── advanced_intel.py # Advanced techniques
 ├── utils/
 │   ├── __init__.py
-│   ├── kali_tools.py    ** Kali Linux tools integration**
-│   └── colors.py        ** Color output utilities**
+│   ├── colors.py         # Color utilities
+│   ├── scanner.py        # Scanning utilities
+│   ├── reporter.py       # Reporting utilities
+│   └── validator.py      # Input validation
 └── wordlists/
-    ├── common.txt       **Common directories/files**
-    └── subdomains.txt   **Subdomain wordlist**
+    ├── subdomains.txt    # Subdomain wordlist
+    ├── directories.txt   # Directory wordlist
+    └── usernames.txt     # Username wordlist
 `
 -->
 ## Output Examples
