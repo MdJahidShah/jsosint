@@ -1,0 +1,12 @@
+admin
+administrator
+user
+test
+guest
+demo
+administrator
+root
+superuser
+supervisor
+manager
+operator

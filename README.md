@@ -1,256 +1,657 @@
-# JSOSINT
-Ultimate OSINT & Pentest Toolkit for KALI LINUX - Combines all Kali tools for complete reconnaissance
+# 🕵️‍♂️ JSOSINT - Ultimate OSINT & Pentest Toolkit for Kali Linux
 
-# jsosint - Ultimate OSINT & Pentest Toolkit for Kali Linux
+[![GitHub stars](https://img.shields.io/github/stars/mdjahidshah/jsosint?style=for-the-badge)](https://github.com/mdjahidshah/jsosint/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/mdjahidshah/jsosint?style=for-the-badge)](https://github.com/mdjahidshah/jsosint/network)
+[![License](https://img.shields.io/github/license/mdjahidshah/jsosint?style=for-the-badge)](https://github.com/mdjahidshah/jsosint/blob/main/LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)](https://python.org)
+[![Kali Linux](https://img.shields.io/badge/Kali%20Linux-Compatible-557C94?style=for-the-badge&logo=kalilinux)](https://kali.org)
 
-![jsosint Banner](https://img.shields.io/badge/jsosint-Ultimate%20OSINT%20and%20Toolkit-blue)
-![Python Version](https://img.shields.io/badge/python-3.6%2B-green)
-![Platform](https://img.shields.io/badge/platform-Kali%20Linux%20%7C%20Linux-red)
-![License](https://img.shields.io/badge/license-MIT-yellow)
+**JSOSINT** is the ultimate all-in-one reconnaissance toolkit that integrates all major Kali Linux tools into a single, unified interface. Perform complete OSINT investigations, network reconnaissance, and vulnerability assessments with one powerful tool.
 
-**jsosint** is a comprehensive OSINT (Open Source Intelligence) toolkit designed for Kali Linux that combines multiple reconnaissance tools into a single, powerful interface. It automates the process of gathering public information about websites and individuals.
+---
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/jahidshah)
+
+## 📖 Table of Contents
+- [🚀 Features](#-features)
+- [📦 Installation](#-installation)
+- [🎯 Quick Start](#-quick-start)
+- [🔍 Usage Examples](#-usage-examples)
+- [📊 Output Examples](#-output-examples)
+- [🛠️ Modules Overview](#️-modules-overview)
+- [⚙️ Configuration](#️-configuration)
+- [🔄 Updates & Maintenance](#-updates--maintenance)
+- [🐛 Reporting Issues](#-reporting-issues)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [📞 Support](#-support)
+- [⚠️ Disclaimer](#️-disclaimer)
+- [☕ Support](#-support)
+
+---
 
 ## 🚀 Features
 
-### 🌐 Website Intelligence
-- **DNS Reconnaissance**: Full DNS enumeration with multiple record types
-- **WHOIS Lookup**: Registrar information, creation/expiration dates
-- **Subdomain Discovery**: Multiple methods including brute force and certificate transparency
-- **Technology Detection**: CMS, frameworks, server software identification
-- **Port Scanning**: Integration with nmap and masscan
-- **Directory Brute Force**: Find hidden files and directories
-- **Email Harvesting**: Extract email addresses from websites
-- **SSL/TLS Analysis**: Certificate information and security checks
-- **Historical Data**: Wayback Machine integration
+### 🌐 **Website Intelligence**
+- **DNS Enumeration** - Complete DNS records analysis
+- **Subdomain Discovery** - Multiple methods (certificate transparency, brute force, search engines)
+- **Technology Detection** - Identify CMS, frameworks, servers, and libraries
+- **Port Scanning** - Nmap integration with detailed service detection
+- **Vulnerability Assessment** - Common vulnerability checks
+- **SSL/TLS Analysis** - Certificate inspection and security checks
+- **Historical Data** - Wayback Machine and historical records
+- **Email Harvesting** - Extract emails from websites and WHOIS
 
-### 👤 Person Intelligence
-- **Email Analysis**: Validation, domain information, MX records
-- **Username Search**: Across 15+ social media platforms
-- **Social Media Discovery**: Automated profile finding
-- **Phone Number Analysis**: Validation and carrier detection
-- **Public Records**: Generated search links for further investigation
-- **Data Breach Checks**: Integration with breach databases
-- **Username Variations**: Auto-generated for comprehensive searching
+### 👤 **Person Intelligence**
+- **Social Media Search** - 30+ platforms including GitHub, Twitter, LinkedIn, Instagram
+- **Username Enumeration** - Cross-platform username checking
+- **Email Intelligence** - Breach checking, Gravatar lookup, email pattern analysis
+- **Phone Number Analysis** - Reverse lookup and carrier detection
+- **Relationship Mapping** - Find connections between accounts
+- **Public Records** - Basic public information gathering
 
-### 🛠️ Tool Integration
-- **Nmap**: Comprehensive port scanning
-- **Masscan**: Fast port scanning
-- **DNSRecon**: Advanced DNS enumeration
-- **WhatWeb**: Technology fingerprinting
-- **Nikto**: Web vulnerability scanning
-- **Dirb/Gobuster**: Directory brute forcing
-- **SQLMap**: SQL injection testing
-- **WPScan**: WordPress security scanning
-- **Sublist3r**: Subdomain enumeration
-- **theHarvester**: Email and host discovery
-- **Sherlock/Maigret**: Social media username search
+### 🌍 **Network Intelligence**
+- **Port Scanning** - Comprehensive port enumeration
+- **Service Detection** - Banner grabbing and service identification
+- **OS Detection** - Multiple fingerprinting methods (Nmap, TTL, port analysis)
+- **Network Discovery** - Host discovery and ARP scanning
+- **Vulnerability Scanning** - Common service vulnerabilities
+- **Traceroute** - Network path analysis
+- **DNS Enumeration** - Zone transfers and record analysis
 
-## 📦 Installation - Quick Install (Kali Linux)
+### 🔧 **Advanced Features**
+- **Kali Tools Integration** - Direct interface to nmap, masscan, dnsrecon, nikto, sqlmap, etc.
+- **Multi-threaded Scanning** - Fast parallel execution
+- **Multiple Output Formats** - JSON, HTML, CSV, TXT reports
+- **Color-coded CLI** - Beautiful terminal interface with rich formatting
+- **API Integration** - Optional Shodan, Censys, VirusTotal integration
+- **Wordlist Management** - Custom wordlist support
+- **Modular Architecture** - Easy to extend and customize
 
-## Clone the repository
+---
+
+## 📦 Installation
+
+### **Prerequisites**
+- **Kali Linux 2023+** (Recommended) or **Ubuntu 20.04+**
+- **Python 3.9+** (`python3 --version`)
+- **Git** (`git --version`)
+- **5GB+ free disk space** for tools and wordlists
+
+### **Method 1: Quick Installation (Recommended)**
 ```bash
+# Clone the repository
 git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
-```
-## Run the installer
-```bash
-chmod +x install.sh
-./install.sh
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install Python dependencies
+pip3 install --upgrade pip
+pip3 install -r requirements.txt
+
+# Install system dependencies
+chmod +x system_requirements.sh
+./system_requirements.sh
+
+# Run the main installer
+chmod +x install-jsosint.sh
+./install-jsosint.sh
+
+# Verify installation
+python3 check_deps.py
 ```
 
-## Manually Installation Process
+### **Method 2: Manual Installation**
+```bash
+# Clone repository
+git clone https://github.com/mdjahidshah/jsosint.git
+cd jsosint
 
-### Install dependencies
-```bash
-pip3 install requests beautifulsoup4 python-whois dnspython colorama
-```
-### Make script executable
-```bash
+# Install system packages
+sudo apt update
+sudo apt install -y \
+    python3 python3-pip python3-venv git \
+    nmap masscan dnsrecon whatweb nikto dirb \
+    gobuster sqlmap wpscan sublist3r theharvester \
+    sherlock maigret metagoofil recon-ng spiderfoot \
+    chromium-driver
+
+# Setup virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install Python packages
+pip3 install --upgrade pip wheel setuptools
+pip3 install -r requirements.txt
+
+# Setup the tool
 chmod +x jsosint.py
+sudo ln -sf "$(pwd)/jsosint.py" /usr/local/bin/jsosint
+mkdir -p ~/.jsosint/{wordlists,results,logs}
 ```
 
-### Create symlink (optional)
+### **Method 3: Docker Installation**
 ```bash
-sudo ln -s $(pwd)/jsosint.py /usr/local/bin/jsosint
-```
-## Basic Commands
+# Clone and build
+git clone https://github.com/mdjahidshah/jsosint.git
+cd jsosint
+docker build -t jsosint .
 
-### Website reconnaissance
+# Run with volume mount for results
+docker run -it --rm -v $(pwd)/results:/app/results jsosint website example.com --basic
+```
+
+---
+
+## 🎯 Quick Start
+
+### **Basic Usage**
 ```bash
-jsosint website example.com
+# Show help menu
+jsosint --help
+
+# Check version
+jsosint --version
+
+# Show available modules
+jsosint website --help
+jsosint person --help
+jsosint network --help
 ```
-### Person reconnaissance by email
+
+### **Activate Virtual Environment**
 ```bash
-jsosint person john.doe@company.com
+# Always activate the virtual environment first
+source venv/bin/activate
+
+# Your jsosint commands will now work
+jsosint --help
 ```
-### Person reconnaissance by username
+
+---
+
+## 🔍 Usage Examples
+
+### **Website Reconnaissance**
 ```bash
-jsosint person johndoe
+# Complete website scan
+jsosint website example.com --all
+
+# Specific modules only
+jsosint website example.com --dns --whois --subdomains --ports
+
+# Technology detection
+jsosint website example.com --tech --directories
+
+# Vulnerability scan
+jsosint website example.com --vuln --history
+
+# Save results to file
+jsosint website example.com --all -o results.json
+jsosint website example.com --all -o report.html --format html
 ```
-### Quick scan (auto-detects target type)
+
+### **Person Investigation**
 ```bash
-jsosint quick target
+# Social media search
+jsosint person username --social --deep
+
+# Email investigation
+jsosint person email@example.com --social --breaches
+
+# Phone number lookup
+jsosint person "+1234567890" --social
+
+# Complete person investigation
+jsosint person target --all --deep
 ```
-### Save results to file
+
+### **Network Scanning**
 ```bash
-jsosint website example.com -o results.json
+# Complete network scan
+jsosint network 192.168.1.1 --all
+
+# Port scanning only
+jsosint network 192.168.1.0/24 --ports --ports-range "1-65535"
+
+# Service and OS detection
+jsosint network 192.168.1.1 --services --os --vuln
+
+# Custom timing
+jsosint network 192.168.1.1 --ports --timing 4
 ```
-<!--## Structure of this Tool
 
-`
-jsosint/
-├── jsosint.py              # Main tool (updated)
-├── requirements.txt        # Dependencies (updated)
-├── install.sh             # Installation script
-├── README.md              # Documentation
-├── LICENSE                # MIT License
-├── config/
-│   ├── config.json       # Main configuration
-│   └── wordlists/        # Wordlists directory
-├── modules/
-│   ├── __init__.py
-│   ├── website_intel.py  # Enhanced website recon
-│   ├── person_intel.py   # Enhanced person recon
-│   ├── network_intel.py  # Network scanning
-│   ├── social_intel.py   # Social media OSINT
-│   └── advanced_intel.py # Advanced techniques
-├── utils/
-│   ├── __init__.py
-│   ├── colors.py         # Color utilities
-│   ├── scanner.py        # Scanning utilities
-│   ├── reporter.py       # Reporting utilities
-│   └── validator.py      # Input validation
-└── wordlists/
-    ├── subdomains.txt    # Subdomain wordlist
-    ├── directories.txt   # Directory wordlist
-    └── usernames.txt     # Username wordlist
-`
--->
-## Output Examples
+---
 
-### Website Scan Output
+## 📊 Output Examples
 
+### **Website Scan Output**
 ```bash
-[*] TARGET: example.com
-[*] START TIME: 2024-01-15 14:30:00
-============================================================
+╔══════════════════════════════════════════════════════════════════╗
+║    ██╗███████╗ ██████╗ ███████╗██╗███╗   ██╗████████╗            ║
+║    ██║██╔════╝██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝            ║
+║    ██║███████╗██║   ██║███████╗██║██╔██╗ ██║   ██║               ║
+║ ██ ██║╚════██║██║   ██║╚════██║██║██║╚██╗██║   ██║               ║
+║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
+║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
+║                                                                  ║
+║               ULTIMATE OSINT SUITE v2.0                          ║
+║          Complete Reconnaissance Toolkit                         ║
+╚══════════════════════════════════════════════════════════════════╝
 
-[+] Basic Information:
-    ip_address: 93.184.216.34
-    status_code: 200
-    server: ECS (nyb/1D2C)
-    title: Example Domain
+[*] Starting Website Reconnaissance
+[*] Target: example.com
+[*] Time: 2024-01-15 14:30:22
+======================================================================
 
-[+] DNS Records:
-    A Records: 93.184.216.34
+[1] Basic Information Gathering
+  ✓ IP Address: 93.184.216.34
+  ✓ HTTP Status: 200 OK
+  ✓ Server: ECS (dcb/7F83)
+  ✓ Title: Example Domain
 
-[+] Subdomains Found:
-    certificate: 15 subdomains
-    sublist3r: 8 subdomains
+[2] DNS Enumeration
+  ✓ A Records: 93.184.216.34
+  ✓ MX Records: mail.example.com
+  ✓ NS Records: a.iana-servers.net, b.iana-servers.net
+  ✓ TXT Records: v=spf1 -all
 
-[+] Technologies Detected:
-    server: ECS
-    cms: None detected
+[3] Subdomain Discovery
+  ✓ Found 12 subdomains
+  ✓ www.example.com
+  ✓ mail.example.com
+  ✓ blog.example.com
 
-[+] Open Ports:
-    Ports: 80, 443
+[+] SCAN COMPLETED SUCCESSFULLY
+======================================================================
 
-[+] Summary:
-    Subdomains: 23
-    Technologies: 1
-    Historical Snapshots: 42
+[📊] Summary: IP: 93.184.216.34, A Records: 1, Subdomains: 12, Open Ports: 3
 ```
 
-### Person Scan Output
+### **Person Scan Output**
 ```bash
-[*] TARGET: johndoe
-[*] START TIME: 2024-01-15 14:35:00
-============================================================
+[*] Starting Person Reconnaissance
+[*] Target: johndoe
+[*] Time: 2024-01-15 14:35:45
+======================================================================
 
-[+] Target Type: username
+[1] Social Media Search
+  ✓ GitHub: Found - 42 repositories, 120 followers
+  ✓ Twitter: Found - 1,245 tweets, 890 followers
+  ✓ LinkedIn: Found - Senior Developer at TechCorp
+  ✗ Instagram: Not found
+  ✗ Facebook: Not found
 
-[+] Social Media Presence:
-    Found on: 8 platforms
-    ✓ GitHub: https://github.com/johndoe
-    ✓ Twitter: https://twitter.com/johndoe
-    ✓ LinkedIn: https://linkedin.com/in/johndoe
+[2] Email Analysis
+  ✓ Email: johndoe@gmail.com
+  ✓ Breach Check: Found in 3 data breaches
+  ✓ Gravatar: Profile found
 
-[+] Public Record Searches:
-    https://www.google.com/search?q="johndoe"
-    https://www.peekyou.com/johndoe
-    https://www.pipl.com/search/?q=johndoe
+[3] Relationship Mapping
+  ✓ Common username patterns detected
+  ✓ Found 2 related accounts
+  ✓ Network strength: Medium
+
+[+] SCAN COMPLETED SUCCESSFULLY
+======================================================================
+
+[📊] Summary: Social Media: 3 platforms, Breached: Yes, Related Accounts: 2
 ```
+
+---
+
+## 🛠️ Modules Overview
+
+| Module | Description | Key Features |
+|--------|-------------|--------------|
+| **website** | Complete website reconnaissance | DNS, subdomains, tech stack, vulnerabilities |
+| **person** | People search and investigation | Social media, email, breaches, relationships |
+| **network** | Network scanning and enumeration | Ports, services, OS detection, vulnerabilities |
+| **advanced** | Advanced OSINT techniques | API integrations, deep web, metadata extraction |
+
+### **Integrated Kali Tools**
+- **nmap** - Network exploration and security auditing
+- **masscan** - Mass port scanner
+- **dnsrecon** - DNS enumeration tool
+- **whatweb** - Web technology identifier
+- **nikto** - Web server scanner
+- **dirb/gobuster** - Directory brute forcer
+- **sqlmap** - SQL injection scanner
+- **wpscan** - WordPress security scanner
+- **sublist3r** - Subdomain enumeration
+- **theHarvester** - Email and subdomain harvester
+- **sherlock/maigret** - Social media finder
+- **metagoofil** - Metadata extractor
+
+---
+
+## ⚙️ Configuration
+
+### **Config File (`config.json`)**
+```json
+{
+  "scan": {
+    "timeout": 10,
+    "threads": 10,
+    "user_agent": "Mozilla/5.0 (compatible; jsosint/1.0)"
+  },
+  "output": {
+    "format": "json",
+    "save_location": "./results",
+    "color_output": true
+  },
+  "api_keys": {
+    "shodan": "YOUR_SHODAN_API_KEY",
+    "censys_id": "YOUR_CENSYS_ID",
+    "censys_secret": "YOUR_CENSYS_SECRET",
+    "virustotal": "YOUR_VIRUSTOTAL_API_KEY"
+  }
+}
+```
+
+### **Custom Wordlists**
+```bash
+# Add custom wordlists to ~/.jsosint/wordlists/
+cp custom_subdomains.txt ~/.jsosint/wordlists/
+cp custom_directories.txt ~/.jsosint/wordlists/
+
+# The tool will automatically detect and use them
+```
+
+### **API Keys Setup**
+```bash
+# Edit config.json to add your API keys for enhanced features
+nano config.json
+
+# Available API services:
+# - Shodan: External intelligence
+# - Censys: Certificate and host data
+# - VirusTotal: Malware analysis
+# - Hunter.io: Email finding
+```
+
+---
+
 ## 🔄 Updates & Maintenance
 
+### **Updating JSOSINT**
 ```bash
 cd jsosint
-git pull
+
+# Pull latest changes
+git pull origin main
+
+# Update dependencies
+source venv/bin/activate
 pip3 install -r requirements.txt --upgrade
+
+# Run system updates if needed
+./system_requirements.sh
 ```
-## Reporting Issues
-Please report bugs and feature requests on the GitHub Issues page.
+
+### **Regular Maintenance**
+```bash
+# Clean old results
+rm -rf results/*.json results/*.html
+
+# Update wordlists
+cd ~/.jsosint/wordlists
+wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
+
+# Check for tool updates
+./check_deps.py
+```
+
+### **Performance Tips**
+```bash
+# Increase threads for faster scanning (config.json)
+"threads": 20
+
+# Adjust timeouts for slow networks
+"timeout": 30
+
+# Use Tor proxy for anonymous scanning
+"tor_proxy": "socks5://127.0.0.1:9050"
+```
+
+---
+
+## 🐛 Reporting Issues
+
+### **Before Reporting**
+1. Check if the issue already exists in [GitHub Issues](https://github.com/mdjahidshah/jsosint/issues)
+2. Update to the latest version: `git pull origin main`
+3. Run dependency check: `python3 check_deps.py`
+
+### **Creating an Issue**
+Provide the following information:
+```markdown
+## Description
+[Brief description of the issue]
+
+## Steps to Reproduce
+1. Command: `jsosint website example.com --all`
+2. Expected: [What should happen]
+3. Actual: [What actually happens]
+
+## Environment
+- OS: [Kali Linux 2023.4]
+- Python: [3.11.4]
+- JSOSINT Version: [1.0.0]
+- Error Log: [Paste error message]
+
+## Screenshots
+[If applicable]
+```
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+We welcome contributions! Here's how you can help:
 
-- Fork the repository
-- Create a feature branch
-- Make your changes
-- Submit a pull request
+### **Ways to Contribute**
+1. **Report bugs** - Create detailed bug reports
+2. **Suggest features** - Open feature requests
+3. **Write code** - Fix bugs or add new features
+4. **Improve docs** - Enhance documentation
+5. **Share wordlists** - Contribute better wordlists
+6. **Test on different systems** - Help with compatibility
 
-## Development Setup
+### **Development Setup**
+```bash
+# Fork and clone
+git clone https://github.com/MdJahidShah/jsosint.git
+cd jsosint
 
-**Clone and setup:**
-bash ``` git clone https://github.com/mdjahidshah/jsosint.git ```
-bash ``` cd jsosint ```
-bash ``` python3 -m venv venv ```
-bash ``` source venv/bin/activate ```
-bash ``` pip3 install -r requirements.txt ```
-bash ``` chmod +x install.sh ```
-bash ``` ./install.sh  ```
+# Setup development environment
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+pip3 install -r requirements-dev.txt  # Development tools
 
+# Create feature branch
+git checkout -b feature/amazing-feature
+
+# Make changes and test
+python3 -m pytest tests/
+black .  # Format code
+flake8 .  # Check style
+
+# Commit and push
+git add .
+git commit -m "Add amazing feature"
+git push origin feature/amazing-feature
+
+# Create Pull Request
+```
+
+### **Guidelines**
+- Follow PEP 8 style guide
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation
+- Keep code modular and reusable
+
+---
 
 ## 📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024 Md Jahid Shah
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
 
 ## 🙏 Acknowledgments
 
-- Kali Linux team for the amazing distribution
-- All the open-source tool developers integrated in jsosint
-- The security community for continuous inspiration
-- Contributors and testers
+### **Core Contributors**
+- **[Md Jahid Shah](https://github.com/mdjahidshah)** - Creator & Maintainer
+- **[Md Jahid Shah]** - Could be you! Contribute today.
+
+### **Tools & Libraries**
+- **Kali Linux Team** - Amazing penetration testing distribution
+- **Nmap Project** - The world's premier network scanner
+- **Shodan.io** - Search engine for Internet-connected devices
+- **All open-source tool developers** integrated in jsosint
+
+### **Community**
+- **Security researchers** worldwide for continuous inspiration
+- **Beta testers** for valuable feedback
+- **GitHub community** for support and collaboration
+
+### **Special Thanks To**
+- Everyone who reported bugs and suggested features
+- Contributors who improved documentation
+- Users who shared wordlists and configurations
+- The entire open-source security community
+
+---
 
 ## 📞 Support
 
-- Documentation: GitHub Wiki
-- Issues: GitHub Issues
-- Discussions: GitHub Discussions
+### **Documentation**
+- **GitHub Wiki**: Complete documentation and tutorials
+- **Examples Directory**: Sample scans and outputs
+- **Video Tutorials**: Coming soon on YouTube
 
-## Disclaimer:
+### **Community Support**
+- **GitHub Issues**: [Report bugs & request features](https://github.com/mdjahidshah/jsosint/issues)
+- **GitHub Discussions**: [Ask questions & share ideas](https://github.com/mdjahidshah/jsosint/discussions)
+- **Discord Community**: Join our security community (Coming soon)
 
-The developers are not responsible for any misuse or damage caused by this program. Use only for legitimate purposes.
+### **Professional Support**
+- **Custom Integrations**: Need specific tool integrations?
+- **Enterprise Features**: Require additional security features?
+- **Training & Workshops**: Learn advanced OSINT techniques
 
+**Contact**: Open a GitHub issue or discussion for professional inquiries.
 
-## Installation & Usage
+---
 
-### 1. Clone and install
-```bash
-git clone https://github.com/mdjahidshah/jsosint.git
-cd jsosint
-chmod +x install.sh
-./install.sh
-```
-### 2. Test installation
-```bash
-jsosint --help
-```
-### 3. Run a scan
-```bash
-jsosint website example.com
-jsosint person username
-jsosint quick target.com
-```
+## ⚠️ Disclaimer
 
-## Support
-👉 Want to Support then, [Buy Me a Coffee](https://buymeacoffee.com/jahidshah)
+**IMPORTANT LEGAL NOTICE**
+
+This tool is designed for **LEGITIMATE SECURITY TESTING AND RESEARCH PURPOSES ONLY**.
+
+### **Legal Usage**
+- Security assessments of your own systems
+- Authorized penetration testing
+- Educational purposes in controlled environments
+- Research with proper authorization
+
+### **Prohibited Usage**
+- Unauthorized scanning of systems you don't own
+- Violating privacy laws and regulations
+- Any illegal activities
+- Harassment or stalking individuals
+
+### **Developer Responsibility**
+The developers of jsosint are **NOT RESPONSIBLE** for:
+- Any misuse or damage caused by this program
+- Legal consequences of unauthorized use
+- Violation of terms of service of other platforms
+- Any actions taken using information gathered by this tool
+
+### **Ethical Guidelines**
+1. **Always obtain proper authorization** before scanning
+2. **Respect privacy** and applicable laws
+3. **Use responsibly** and ethically
+4. **Report vulnerabilities** responsibly to owners
+5. **Follow platform terms of service**
+
+**By using this tool, you agree to use it only for legitimate, authorized purposes and accept full responsibility for your actions.**
+
+---
+
+## ☕ Support
+
+If you find JSOSINT useful and want to support its development:
+
+### **Buy Me a Coffee**
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/jahidshah)
+
+### **Other Ways to Support**
+1. **Star the repository** ⭐ - It helps others discover the tool
+2. **Share with colleagues** - Spread the word in the security community
+3. **Contribute code** - Help improve the tool
+4. **Report issues** - Help make it better
+5. **Write tutorials** - Share your knowledge
+
+### **Why Support?**
+Your support helps:
+- Maintain and update the tool regularly
+- Add new features and integrations
+- Fix bugs and improve performance
+- Create better documentation
+- Support the open-source community
+
+**Thank you for your support! 🙏**
+
+---
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=mdjahidshah/jsosint&type=Date)](https://star-history.com/#mdjahidshah/jsosint&Date)
+
+---
+
+## 📈 Statistics
+
+![GitHub repo size](https://img.shields.io/github/repo-size/mdjahidshah/jsosint?style=flat-square)
+![GitHub last commit](https://img.shields.io/github/last-commit/mdjahidshah/jsosint?style=flat-square)
+![GitHub issues](https://img.shields.io/github/issues/mdjahidshah/jsosint?style=flat-square)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/mdjahidshah/jsosint?style=flat-square)
+
+---
+
+**Happy Reconnaissance! 🕵️‍♂️**
+
+*Remember: With great power comes great responsibility. Use JSOSINT ethically and legally.*
