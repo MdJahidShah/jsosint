@@ -88,8 +88,8 @@ cd jsosint
 ```
 #### Create and activate virtual environment
 ```bash
-python3 -m venv venv
-sudo source venv/bin/activate
+sudo python3 -m venv venv
+source venv/bin/activate
 ```
 #### Install Python dependencies
 ```bash
