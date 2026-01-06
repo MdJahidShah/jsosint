@@ -80,38 +80,46 @@
 - **5GB+ free disk space** for tools and wordlists
 
 ### **Method 1: Quick Installation (Recommended)**
+
+#### Clone the repository
 ```bash
-# Clone the repository
 git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
-
-# Create and activate virtual environment
+```
+#### Create and activate virtual environment
+```bash
 python3 -m venv venv
-source venv/bin/activate
-
-# Install Python dependencies
+sudo source venv/bin/activate
+```
+#### Install Python dependencies
+```bash
 pip3 install --upgrade pip
 pip3 install -r requirements.txt
-
-# Install system dependencies
+```
+#### Install system dependencies
+```bash
 chmod +x system_requirements.sh
 ./system_requirements.sh
-
-# Run the main installer
+```
+#### Run the main installer
+```bash
 chmod +x install-jsosint.sh
 ./install-jsosint.sh
-
-# Verify installation
+```
+#### Verify installation
+```bash
 python3 check_deps.py
 ```
 
 ### **Method 2: Manual Installation**
+
+#### Clone repository
 ```bash
-# Clone repository
 git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
-
-# Install system packages
+```
+#### Install system packages
+```bash
 sudo apt update
 sudo apt install -y \
     python3 python3-pip python3-venv git \
@@ -119,47 +127,58 @@ sudo apt install -y \
     gobuster sqlmap wpscan sublist3r theharvester \
     sherlock maigret metagoofil recon-ng spiderfoot \
     chromium-driver
-
-# Setup virtual environment
+```
+#### Setup virtual environment
+```bash
 python3 -m venv venv
 source venv/bin/activate
-
-# Install Python packages
+```
+#### Install Python packages
+```bash
 pip3 install --upgrade pip wheel setuptools
 pip3 install -r requirements.txt
-
-# Setup the tool
+```
+#### Setup the tool
+```bash
 chmod +x jsosint.py
 sudo ln -sf "$(pwd)/jsosint.py" /usr/local/bin/jsosint
 mkdir -p ~/.jsosint/{wordlists,results,logs}
 ```
 
 ### **Method 3: Docker Installation**
+
+#### Clone and build
 ```bash
-# Clone and build
 git clone https://github.com/mdjahidshah/jsosint.git
 cd jsosint
 docker build -t jsosint .
-
-# Run with volume mount for results
+```
+#### Run with volume mount for results
+```bash
 docker run -it --rm -v $(pwd)/results:/app/results jsosint website example.com --basic
 ```
-
 ---
 
 ## 🎯 Quick Start
 
 ### **Basic Usage**
+
+#### Show help menu
 ```bash
-# Show help menu
 jsosint --help
-
-# Check version
+```
+#### Check version
+```bash
 jsosint --version
-
-# Show available modules
+```
+#### Show available modules
+```bash
 jsosint website --help
+```
+```bash
 jsosint person --help
+```
+```bash
 jsosint network --help
 ```
 
