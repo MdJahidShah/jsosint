@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-
 """
 Advanced OSINT Intelligence Module
-
 Advanced techniques and integration with external services
 """
 
@@ -22,17 +20,25 @@ import csv
 import os
 from utils.colors import Colors
 
+#Import other modules only when needed to avoid circular imports
+from modules.website_intel import WebsiteRecon
+from modules.person_intel import PersonRecon
+from modules.network_intel import NetworkScanner
+
 class AdvancedOSINT:
     """Advanced OSINT techniques and integrations"""
     
     def __init__(self, api_keys=None):
         self.colors = Colors()
+        
+        # Initialize tools lazily (when needed) to avoid import issues
+        self.network_tool = None
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
         self.api_keys = api_keys or {}
-        
+
         # External service configurations
         self.services = {
             'shodan': {
@@ -65,6 +71,13 @@ class AdvancedOSINT:
             }
         }
     
+    def _get_network_tool(self):
+        """Lazy initialization of NetworkScanner"""
+        if self.network_tool is None:
+            from modules.network_intel import NetworkScanner
+            self.network_tool = NetworkScanner()
+        return self.network_tool
+    
     def full_osint(self, target, scan_type='auto'):
         """Complete OSINT gathering with all available methods"""
         results = {
@@ -73,18 +86,22 @@ class AdvancedOSINT:
             'timestamp': datetime.now().isoformat(),
             'modules': {}
         }
-        
         print(f"{self.colors.CYAN}[*]{self.colors.RESET} Starting advanced OSINT on: {target}")
         
         try:
-            # Determine target type
             target_type = self._detect_target_type(target)
             results['detected_type'] = target_type
             
-            # Run appropriate scans
             if target_type in ['domain', 'ip']:
-                results['modules']['network_intel'] = self.network_intelligence(target)
-                results['modules']['domain_intel'] = self.domain_intelligence(target)
+                # Call the Website Intelligence module
+                from modules.website_intel import WebsiteRecon
+                website_tool = WebsiteRecon(target)
+                
+                network_tool = self._get_network_tool()
+                results['modules']['network_intel'] = network_tool.scan_ports(target)
+                results['modules']['domain_intel'] = website_tool.get_basic_info()
+                
+                # We now point threat_intel to our internal method
                 results['modules']['threat_intel'] = self.threat_intelligence(target)
                 
                 if self._has_api_key('shodan'):
@@ -95,9 +112,14 @@ class AdvancedOSINT:
                     results['modules']['virustotal_scan'] = self.virustotal_scan(target)
                 if self._has_api_key('securitytrails'):
                     results['modules']['securitytrails_scan'] = self.securitytrails_scan(target)
-                    
+            
             elif target_type in ['email', 'username']:
-                results['modules']['person_intel'] = self.person_intelligence(target)
+                # Call the Person Intelligence module
+                from modules.person_intel import PersonRecon
+                person_tool = PersonRecon(target)
+                results['modules']['person_intel'] = person_tool.basic_analysis()
+                
+                # Point social_intel to our internal method
                 results['modules']['social_intel'] = self.social_intelligence(target)
                 
                 if target_type == 'email' and self._has_api_key('hunterio'):
@@ -152,7 +174,183 @@ class AdvancedOSINT:
             return bool(key)
         return False
     
-    # ... (all the existing methods remain the same until the end) ...
+    # --- CORE INTELLIGENCE METHODS ---
+    
+    def threat_intelligence(self, target):
+        """Bridge to the NetworkScanner vulnerability module"""
+        network_tool = self._get_network_tool()
+        return network_tool.vulnerability_scan(target)
+    
+    def social_intelligence(self, target):
+        """Bridge to the SocialMediaFinder module"""
+        from modules.social_intel import SocialMediaFinder
+        finder = SocialMediaFinder()
+        return finder.search_all_platforms(target)
+    
+    def web_intelligence(self, target):
+        """Extracts deeper web insights using WebsiteRecon"""
+        from modules.website_intel import WebsiteRecon
+        recon = WebsiteRecon(target)
+        return {
+            "technologies": recon.detect_technologies(),
+            "directories": recon.find_directories(),
+            "note": "Additional web intelligence gathered"
+        }
+    
+    def image_intelligence(self, target):
+        """Reverse image search logic"""
+        img_intel = {
+            'target': target,
+            'reverse_image_search': [],
+            'exif_data': {},
+            'image_analysis': {}
+        }
+        
+        try:
+            # Reverse image search links
+            encoded_target = quote(target)
+            img_intel['reverse_image_search'] = [
+                {
+                    'service': 'Google Images',
+                    'url': f'https://images.google.com/searchbyimage?image_url={encoded_target}',
+                    'method': 'URL search'
+                },
+                {
+                    'service': 'TinEye',
+                    'url': f'https://tineye.com/search?url={encoded_target}',
+                    'method': 'URL search'
+                },
+                {
+                    'service': 'Yandex Images',
+                    'url': f'https://yandex.com/images/search?url={encoded_target}&rpt=imageview',
+                    'method': 'URL search'
+                }
+            ]
+            
+        except Exception as e:
+            img_intel['error'] = str(e)
+        
+        return img_intel
+    
+    def metadata_intelligence(self, target):
+        """Integration with metagoofil style logic"""
+        meta_intel = {
+            'target': target,
+            'document_metadata': {},
+            'code_repositories': [],
+            'paste_sites': [],
+            'forums_discussions': []
+        }
+        
+        try:
+            # Document metadata (placeholder for actual extraction)
+            meta_intel['document_metadata'] = {
+                'note': 'For document metadata analysis, upload files to:',
+                'tools': [
+                    'MetaShield',
+                    'ExifTool',
+                    'FOCA',
+                    'Metadata2Go'
+                ]
+            }
+            
+            # Code repositories search
+            if '@' not in target and '.' not in target:  # Likely username
+                meta_intel['code_repositories'] = [
+                    {
+                        'platform': 'GitHub',
+                        'url': f'https://github.com/{target}',
+                        'search_url': f'https://github.com/search?q={target}&type=users'
+                    },
+                    {
+                        'platform': 'GitLab',
+                        'url': f'https://gitlab.com/{target}',
+                        'search_url': f'https://gitlab.com/search?search={target}'
+                    }
+                ]
+            
+        except Exception as e:
+            meta_intel['error'] = str(e)
+        
+        return meta_intel
+    
+    # --- EXTERNAL API METHODS ---
+    
+    def shodan_search(self, target):
+        """Placeholder for Shodan API search"""
+        if not self._has_api_key('shodan'):
+            return {"error": "Shodan API key required", "target": target}
+        
+        # In a real scenario, you would use: shodan.Shodan(self.api_keys['shodan'])
+        return {
+            "info": "Shodan search requires active API key and shodan library", 
+            "target": target,
+            "example_query": f"https://www.shodan.io/search?query={target}"
+        }
+    
+    def censys_search(self, target):
+        """Placeholder for Censys API search"""
+        if not self._has_api_key('censys'):
+            return {"error": "Censys API key required", "target": target}
+        
+        return {
+            "info": "Censys search requires API credentials", 
+            "target": target
+        }
+    
+    def virustotal_scan(self, target):
+        """Placeholder for VirusTotal API scan"""
+        if not self._has_api_key('virustotal'):
+            return {"error": "VirusTotal API key required", "target": target}
+        
+        return {
+            "info": "VirusTotal scan requires API key", 
+            "target": target,
+            "public_url": f"https://www.virustotal.com/gui/search/{target}"
+        }
+    
+    def hunterio_email_search(self, email):
+        """Placeholder for Hunter.io email search"""
+        if not self._has_api_key('hunterio'):
+            return {"error": "Hunter.io API key required", "email": email}
+        
+        return {
+            "info": "Hunter.io email search requires API key", 
+            "email": email
+        }
+    
+    def breachdirectory_search(self, query):
+        """Placeholder for BreachDirectory search"""
+        if not self._has_api_key('breachdirectory'):
+            return {"error": "BreachDirectory API key required", "query": query}
+        
+        return {
+            "info": "BreachDirectory search requires API key", 
+            "query": query
+        }
+    
+    def securitytrails_scan(self, domain):
+        """Placeholder for SecurityTrails scan"""
+        if not self._has_api_key('securitytrails'):
+            return {"error": "SecurityTrails API key required", "domain": domain}
+        
+        return {
+            "info": "SecurityTrails scan requires API key", 
+            "domain": domain,
+            "public_info": f"https://securitytrails.com/domain/{domain}"
+        }
+    
+    def fullcontact_lookup(self, identifier):
+        """Placeholder for FullContact lookup"""
+        if not self._has_api_key('fullcontact'):
+            return {"error": "FullContact API key required", "identifier": identifier}
+        
+        return {
+            "info": "FullContact lookup requires API key", 
+            "identifier": identifier
+        }
+    
+    # --- REPORTING AND ANALYSIS METHODS (keep all existing ones) ---
     
     def _generate_person_leads(self, identifier):
         """Generate investigation leads for person intelligence"""
