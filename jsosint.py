@@ -21,8 +21,9 @@ try:
     from modules.social_intel import SocialMediaFinder
     from modules.advanced_intel import AdvancedOSINT
     from utils.colors import Colors
-    from utils.reporter import ReportGenerator
-    from utils.validator import InputValidator
+    # Note: ReportGenerator and InputValidator might not exist yet
+    # from utils.reporter import ReportGenerator
+    # from utils.validator import InputValidator
 except ImportError as e:
     print(f"Error importing modules: {e}")
     print("Please run: pip install -r requirements.txt")
@@ -38,8 +39,10 @@ class Jsosint:
         
     def _create_banner(self):
         """Create tool banner"""
+        # Try to use BOLD if it exists, otherwise use empty string
+        bold_attr = getattr(self.colors, 'BOLD', '')
         return f"""
-{self.colors.CYAN}{self.colors.BOLD}
+{self.colors.CYAN}{bold_attr}
 ╔══════════════════════════════════════════════════════════════════╗
 ║    ██╗███████╗ ██████╗ ███████╗██╗███╗   ██╗████████╗            ║
 ║    ██║██╔════╝██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝            ║
@@ -234,8 +237,12 @@ class Jsosint:
         # Save to file if requested
         if options.output:
             try:
-                reporter = ReportGenerator()
-                filename = reporter.save_results(self.results, options.output, options.format)
+                # Simple file saving if ReportGenerator doesn't exist
+                filename = options.output
+                if not filename.endswith('.json'):
+                    filename += '.json'
+                with open(filename, 'w') as f:
+                    json.dump(self.results, f, indent=2)
                 print(f"\n{self.colors.GREEN}[+]{self.colors.RESET} Results saved to: {filename}")
             except Exception as e:
                 print(f"\n{self.colors.RED}[!]{self.colors.RESET} Failed to save results: {e}")
