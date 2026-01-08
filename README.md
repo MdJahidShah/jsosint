@@ -103,8 +103,8 @@ chmod +x system_requirements.sh
 ```
 #### Run the main installer
 ```bash
-chmod +x install-jsosint.sh
-./install-jsosint.sh
+chmod +x install.sh
+./install.sh
 ```
 #### Verify installation
 ```bash
