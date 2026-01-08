@@ -505,7 +505,7 @@ def main():
 if __name__ == '__main__':
     main()
 EOF
-    print_success("Created basic jsosint.py")
+    print_success "Created basic jsosint.py"
 fi
 
 chmod +x jsosint.py
