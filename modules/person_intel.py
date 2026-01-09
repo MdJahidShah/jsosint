@@ -72,7 +72,8 @@ class PersonRecon:
             analysis.update(self._analyze_ip())
         else:  # username
             analysis.update(self._analyze_username())
-        
+        analysis['found'] = True
+
         return analysis
     
     def _analyze_email(self):
@@ -161,7 +162,8 @@ class PersonRecon:
             
         except Exception as e:
             email_info['error'] = str(e)
-        
+            email_info['found'] = True
+
         return email_info
     
     def _analyze_phone(self):
@@ -241,6 +243,7 @@ class PersonRecon:
             
         except Exception as e:
             phone_info['error'] = str(e)
+            phone_info['found'] = phone_info.get('valid', False)
         
         return phone_info
     
@@ -304,6 +307,7 @@ class PersonRecon:
             
         except Exception as e:
             ip_info['error'] = str(e)
+            ip_info['found'] = ip_info.get('is_global', False)
         
         return ip_info
     
@@ -369,85 +373,67 @@ class PersonRecon:
             
         except Exception as e:
             username_info['error'] = str(e)
-        
+            username_info['found'] = True
+
         return username_info
     
-    def _extract_possible_name(self, text):
-        """Try to extract a possible name from text"""
-        # Common patterns
-        patterns = [
-            (r'^([a-z]+)\.([a-z]+)$', '{first} {last}'),  # first.last
-            (r'^([a-z]+)([a-z]+)$', '{first} {last}'),    # firstlast (if both parts > 2 chars)
-            (r'^([a-z])\.?([a-z]+)$', '{first_initial} {last}'),  # f.last or flast
-        ]
+    def extract_possible_name(self):
+        """Extract possible name from username"""
+        username = self.identifier
+        name_parts = re.split(r'[._-]', username)
         
-        text_lower = text.lower()
+        if len(name_parts) >= 2:
+            first_name = name_parts[0].capitalize()
+            last_name = name_parts[1].capitalize()
+            return {'first_name': first_name, 'last_name': last_name}
+        elif len(name_parts) == 1:
+            part = name_parts[0]
+            if len(part) > 3:
+                return {'name_guess': part.capitalize()}
         
-        for pattern, format_str in patterns:
-            match = re.match(pattern, text_lower)
-            if match:
-                groups = match.groups()
-                if len(groups) == 2:
-                    first = groups[0].capitalize() if len(groups[0]) > 1 else groups[0].upper() + '.'
-                    last = groups[1].capitalize()
-                    return format_str.format(first=first, last=last, first_initial=first)
-        
-        return None
+        return {
+            'found': True,
+            'data': {
+                'first_name': first_name,
+                'last_name': last_name
+            }
+        }
     
-    def _generate_username_variations(self, username):
+    def generate_username_variations(self):
         """Generate username variations"""
+        username = self.identifier
         variations = set()
         
-        # Original variations
+        # Basic variations
         variations.add(username)
         variations.add(username.lower())
         variations.add(username.upper())
+        variations.add(username.capitalize())
         
-        # Remove special characters
-        clean = re.sub(r'[._-]', '', username)
-        if clean != username:
-            variations.add(clean)
-            variations.add(clean.lower())
-            variations.add(clean.upper())
-        
-        # Common prefixes and suffixes
-        prefixes = ['the', 'real', 'official', 'mr', 'ms', 'dr', 'prof', 'im', 'iam']
-        suffixes = ['123', '2024', '2023', 'official', 'real', 'tv', 'hd', 'gamer', 
-                   'pro', 'x', 'xx', '69', '420', '007', '99', '88', '1234', '1']
+        # Add common prefixes/suffixes
+        prefixes = ['the', 'real', 'official', 'its', 'mr', 'ms', 'dr']
+        suffixes = ['123', '01', '2020', '2021', 'xyz', 'abc']
         
         for prefix in prefixes:
             variations.add(f"{prefix}{username}")
             variations.add(f"{prefix}_{username}")
-            variations.add(f"{prefix}{username.lower()}")
+            variations.add(f"{prefix}.{username}")
         
         for suffix in suffixes:
             variations.add(f"{username}{suffix}")
             variations.add(f"{username}_{suffix}")
-            variations.add(f"{username.lower()}{suffix}")
+            variations.add(f"{username}.{suffix}")
         
-        # Reverse if it looks like first.last
-        if '.' in username:
-            parts = username.split('.')
-            if len(parts) == 2:
-                variations.add(f"{parts[1]}.{parts[0]}")
-                variations.add(f"{parts[1]}{parts[0]}")
-                variations.add(f"{parts[0][0]}{parts[1]}")
-                variations.add(f"{parts[1][0]}{parts[0]}")
+        # Leet speak variations
+        leet_map = str.maketrans('aeios', '43105')
+        leet_username = username.translate(leet_map)
+        variations.add(leet_username)
         
-        # Common patterns
-        if len(username) > 3:
-            variations.add(username[:3])  # First 3 chars
-            variations.add(username[-3:])  # Last 3 chars
-            variations.add(username[:1] + username[-1:])  # First and last
-        
-        # Add numbers
-        for i in range(1, 10):
-            variations.add(f"{username}{i}")
-            variations.add(f"{username}_{i}")
-            variations.add(f"{username}0{i}")
-        
-        return list(variations)[:50]  # Limit to 50 variations
-    
+        return {
+            'found': len(variations) > 0,
+            'variations': list(variations)
+        }
+
     def email_analysis(self):
         """Comprehensive email analysis"""
         if self.identifier_type != 'email':
@@ -650,7 +636,8 @@ class PersonRecon:
             
         except Exception as e:
             records['error'] = str(e)
-        
+            records['found'] = True
+
         return records
     
     def find_associated_accounts(self):
@@ -731,6 +718,9 @@ class PersonRecon:
                 {'name': 'Flickr', 'url': f'https://www.flickr.com/people/{username}'}
             ]
             
+            accounts['found'] = any(
+                len(v) > 0 for v in accounts.values() if isinstance(v, list)
+            )
         except Exception as e:
             accounts['error'] = str(e)
         

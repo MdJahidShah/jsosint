@@ -11,8 +11,9 @@ import os
 from datetime import datetime
 import signal
 
-# Add current directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Ensure local imports work
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
 
 try:
     from modules.website_intel import WebsiteRecon
@@ -21,28 +22,24 @@ try:
     from modules.social_intel import SocialMediaFinder
     from modules.advanced_intel import AdvancedOSINT
     from utils.colors import Colors
-    # Note: ReportGenerator and InputValidator might not exist yet
-    # from utils.reporter import ReportGenerator
-    # from utils.validator import InputValidator
 except ImportError as e:
-    print(f"Error importing modules: {e}")
-    print("Please run: pip install -r requirements.txt")
+    print(f"[!] Import error: {e}")
+    print("[!] Did you install requirements and keep folder structure?")
     sys.exit(1)
 
+
 class Jsosint:
-    """Main jsosint class - Complete OSINT Suite"""
-    
+    """Main jsosint engine"""
+
     def __init__(self):
         self.colors = Colors()
-        self.banner = self._create_banner()
         self.results = {}
-        
+        self.banner = self._create_banner()
+
     def _create_banner(self):
-        """Create tool banner"""
-        # Try to use BOLD if it exists, otherwise use empty string
-        bold_attr = getattr(self.colors, 'BOLD', '')
+        bold = getattr(self.colors, "BOLD", "")
         return f"""
-{self.colors.CYAN}{bold_attr}
+{self.colors.CYAN}{bold}
 ╔══════════════════════════════════════════════════════════════════╗
 ║    ██╗███████╗ ██████╗ ███████╗██╗███╗   ██╗████████╗            ║
 ║    ██║██╔════╝██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝            ║
@@ -52,338 +49,454 @@ class Jsosint:
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
 ║               ULTIMATE OSINT SUITE v2.0                          ║
-║          Complete Reconnaissance Toolkit                         ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
-    
+
     def print_banner(self):
-        """Print the banner"""
         print(self.banner)
-    
+
+    def show_version(self):
+        print(f"{self.colors.GREEN}[+]{self.colors.RESET} jsosint version: 2.0.0")
+
+    # ===================== WEBSITE =====================
+
     def run_website_recon(self, target, options):
-        """Complete website reconnaissance"""
         self.print_banner()
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Starting Website Reconnaissance")
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Target: {target}")
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"{self.colors.BLUE}{'='*70}{self.colors.RESET}")
+        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Website Recon: {target}")
+
+        recon = WebsiteRecon(target)
+
+        if options.all or options.basic:
+            self._safe_run("Basic Info", "basic", recon.get_basic_info)
+
+        if options.all or options.dns:
+            self._safe_run("DNS", "dns", recon.enumerate_dns)
+
+        if options.all or options.whois:
+            if hasattr(recon, "whois_lookup"):
+                self._safe_run("WHOIS", "whois", recon.whois_lookup)
+            else:
+                print(f"{self.colors.YELLOW}[!] WHOIS not implemented{self.colors.RESET}")
+
+        if options.all or options.subdomains:
+            self._safe_run("Subdomains", "subdomains", recon.find_subdomains)
+
+        if options.all or options.tech:
+            self._safe_run("Technologies", "technologies", recon.detect_technologies)
+
+        if options.all or options.directories:
+            self._safe_run("Directories", "directories", recon.find_directories)
         
-        try:
-            recon = WebsiteRecon(target)
-            
-            # Run selected modules
-            if options.all or options.basic:
-                print(f"\n{self.colors.CYAN}[1]{self.colors.RESET} Basic Information Gathering")
-                self.results['basic'] = recon.get_basic_info()
-            
-            if options.all or options.dns:
-                print(f"\n{self.colors.CYAN}[2]{self.colors.RESET} DNS Enumeration")
-                self.results['dns'] = recon.enumerate_dns()
-            
-            if options.all or options.whois:
-                print(f"\n{self.colors.CYAN}[3]{self.colors.RESET} WHOIS Lookup")
-                self.results['whois'] = recon.whois_lookup()
-            
-            if options.all or options.subdomains:
-                print(f"\n{self.colors.CYAN}[4]{self.colors.RESET} Subdomain Discovery")
-                self.results['subdomains'] = recon.find_subdomains(
-                    use_cert=options.cert,
-                    use_bruteforce=options.bruteforce,
-                    use_search=options.search
-                )
-            
-            if options.all or options.tech:
-                print(f"\n{self.colors.CYAN}[5]{self.colors.RESET} Technology Detection")
-                self.results['technologies'] = recon.detect_technologies()
-            
-            if options.all or options.directories:
-                print(f"\n{self.colors.CYAN}[6]{self.colors.RESET} Directory Enumeration")
-                self.results['directories'] = recon.find_directories()
-            
-            if options.all or options.emails:
-                print(f"\n{self.colors.CYAN}[7]{self.colors.RESET} Email Harvesting")
-                self.results['emails'] = recon.harvest_emails()
-            
-            if options.all or options.ports:
-                print(f"\n{self.colors.CYAN}[8]{self.colors.RESET} Port Scanning")
-                scanner = NetworkScanner()
-                self.results['ports'] = scanner.scan_ports(target)
-            
-            if options.all or options.vuln:
-                print(f"\n{self.colors.CYAN}[9]{self.colors.RESET} Vulnerability Scan")
-                self.results['vulnerabilities'] = recon.scan_vulnerabilities()
-            
-            if options.all or options.history:
-                print(f"\n{self.colors.CYAN}[10]{self.colors.RESET} Historical Data")
-                self.results['historical'] = recon.get_historical_data()
-            
-            # Generate report
-            self._generate_report(target, 'website', options)
-            
-        except KeyboardInterrupt:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Scan interrupted by user")
-        except Exception as e:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Error: {e}")
-    
+        #harvest_emails
+        if options.all or options.emails:
+            self._safe_run("Emails", "emails", recon.harvest_emails)
+        #scan_ports
+        if options.all or options.ports:
+            self._safe_run("Open Ports", "open_ports", recon.scan_ports)
+
+        self._generate_report(target, "website", options)
+
+    # ===================== PERSON =====================
+
     def run_person_recon(self, target, options):
-        """Complete person reconnaissance"""
         self.print_banner()
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Starting Person Reconnaissance")
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Target: {target}")
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"{self.colors.BLUE}{'='*70}{self.colors.RESET}")
+        recon = PersonRecon(target)
+
+        if options.all or options.basic:
+            self._safe_run("Basic Analysis", "basic", recon.basic_analysis)
+        if options.all or options.emails:
+            self._safe_run("Emails", "emails", recon._analyze_email)
+        #_analyze_phone
+        if options.all or options.phone:
+            self._safe_run("Phone Numbers", "phone_numbers", recon._analyze_phone)
+        #_analyze_ip
+        if options.all or options.ip:
+            self._safe_run("IP Addresses", "ip_addresses", recon._analyze_ip)
+        #_analyze_username
+        if options.all or options.username:
+            self._safe_run("Usernames", "usernames", recon._analyze_username)
+        #extract_possible_name
+        if options.all or options.name:
+            self._safe_run("Possible Names", "possible_names", recon.extract_possible_name)
+        #generate_username_variations
+        if options.all or options.variations:
+            self._safe_run("Username Variations", "username_variations", recon.generate_username_variations)
+
+        #email_analysis
+        if options.all or options.email_analysis:
+            self._safe_run("Email Analysis", "email_analysis", recon.email_analysis)
+        #check_breaches
+        if options.all or options.breaches:
+            self._safe_run("Breaches", "breaches", recon.check_breaches)
+        #public_records
+        if options.all or options.public:
+            self._safe_run("Public Records", "public", recon.search_public_records)
+        #find_associated_accounts
+        if options.all or options.accounts:
+            self._safe_run("Associated Accounts", "associated_accounts", recon.find_associated_accounts)
         
-        try:
-            recon = PersonRecon(target)
-            
-            # Run selected modules
-            if options.all or options.basic:
-                print(f"\n{self.colors.CYAN}[1]{self.colors.RESET} Basic Analysis")
-                self.results['basic'] = recon.basic_analysis()
-            
-            if options.all or options.social:
-                print(f"\n{self.colors.CYAN}[2]{self.colors.RESET} Social Media Search")
-                finder = SocialMediaFinder()
-                self.results['social_media'] = finder.search_all_platforms(
-                    recon.username, 
-                    deep_search=options.deep
-                )
-            
-            if options.all or options.emails:
-                print(f"\n{self.colors.CYAN}[3]{self.colors.RESET} Email Analysis")
-                self.results['email_analysis'] = recon.email_analysis()
-            
-            if options.all or options.breaches:
-                print(f"\n{self.colors.CYAN}[4]{self.colors.RESET} Data Breach Check")
-                self.results['breaches'] = recon.check_breaches()
-            
-            if options.all or options.public:
-                print(f"\n{self.colors.CYAN}[5]{self.colors.RESET} Public Records")
-                self.results['public_records'] = recon.search_public_records()
-            
-            if options.all or options.advanced:
-                print(f"\n{self.colors.CYAN}[6]{self.colors.RESET} Advanced OSINT")
-                advanced = AdvancedOSINT()
-                self.results['advanced'] = advanced.full_osint(target)
-            
-            # Generate report
-            self._generate_report(target, 'person', options)
-            
-        except KeyboardInterrupt:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Scan interrupted by user")
-        except Exception as e:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Error: {e}")
-    
+        #advanced_osint
+        if options.all or options.advanced:
+            adv = AdvancedOSINT()
+            self._safe_run("Advanced OSINT", "advanced", lambda: adv.full_osint(target))
+
+        self._generate_report(target, "person", options)
+
+    # ===================== NETWORK =====================
+
     def run_network_scan(self, target, options):
-        """Network scanning and enumeration"""
         self.print_banner()
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Starting Network Scan")
-        print(f"{self.colors.GREEN}[*]{self.colors.RESET} Target: {target}")
-        print(f"{self.colors.BLUE}{'='*70}{self.colors.RESET}")
-        
+        scanner = NetworkScanner()
+
+        if options.all or options.ports:
+            self._safe_run(
+                "Ports",
+                "ports",
+                lambda: scanner.scan_ports(target)
+            )
+
+        if options.all or options.services:
+            self._safe_run(
+                "Services",
+                "services",
+                lambda: scanner.detect_services(target)
+            )
+        #_extract_html_title
+        if options.all or options.title:
+            self._safe_run(
+                "HTML Title",
+                "html_title",
+                lambda: scanner._extract_html_title(target)
+            )
+
+        if options.all or options.os:
+            self._safe_run(
+                "OS Detection",
+                "os",
+                lambda: scanner.os_detection(target)
+            )
+
+        if options.all or options.vuln:
+            self._safe_run(
+                "Vulnerabilities",
+                "vulnerabilities",
+                lambda: scanner.vulnerability_scan(target)
+            )
+        #network_discovery
+        if options.all or options.discovery:
+            self._safe_run(
+                "Network Discovery",
+                "network_discovery",
+                lambda: scanner.network_discovery(target)
+            )
+        #_get_mac_vendor
+        if options.all or options.mac_vendor:
+            self._safe_run(
+                "MAC Vendor",
+                "mac_vendor",
+                lambda: scanner._get_mac_vendor(target)
+            )
+        #traceroute
+        if options.all or options.traceroute:
+            self._safe_run(
+                "Traceroute",
+                "traceroute",
+                lambda: scanner.traceroute(target)
+            )
+        #dns_enumeration
+        if options.all or options.dns_enum:
+            self._safe_run(
+                "DNS Enumeration",
+                "dns_enumeration",
+                lambda: scanner.dns_enumeration(target)
+            )
+            #
+
+        self._generate_report(target, "network", options)
+
+    # ===================== HELPERS =====================
+
+    def _safe_run(self, label, key, func):
         try:
-            scanner = NetworkScanner()
-            
-            if options.all or options.ports:
-                print(f"\n{self.colors.CYAN}[1]{self.colors.RESET} Port Scanning")
-                self.results['ports'] = scanner.scan_ports(target, 
-                    ports=options.ports_range, 
-                    timing=options.timing
-                )
-            
-            if options.all or options.services:
-                print(f"\n{self.colors.CYAN}[2]{self.colors.RESET} Service Detection")
-                self.results['services'] = scanner.detect_services(target)
-            
-            if options.all or options.os:
-                print(f"\n{self.colors.CYAN}[3]{self.colors.RESET} OS Detection")
-                self.results['os_info'] = scanner.os_detection(target)
-            
-            if options.all or options.vuln:
-                print(f"\n{self.colors.CYAN}[4]{self.colors.RESET} Vulnerability Scan")
-                self.results['vulnerabilities'] = scanner.vulnerability_scan(target)
-            
-            # Generate report
-            self._generate_report(target, 'network', options)
-            
-        except KeyboardInterrupt:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Scan interrupted by user")
+            print(f"{self.colors.CYAN}[*]{self.colors.RESET} {label}")
+            self.results[key] = func()
         except Exception as e:
-            print(f"\n{self.colors.RED}[!]{self.colors.RESET} Error: {e}")
-    
+            print(f"{self.colors.RED}[-]{self.colors.RESET} {label} failed: {e}")
+
     def _generate_report(self, target, scan_type, options):
-        """Generate and save report"""
         if not self.results:
-            print(f"\n{self.colors.YELLOW}[!]{self.colors.RESET} No results to report")
+            print(f"{self.colors.YELLOW}[!] No results{self.colors.RESET}")
             return
-        
-        # Add metadata
-        self.results['metadata'] = {
-            'target': target,
-            'scan_type': scan_type,
-            'timestamp': datetime.now().isoformat(),
-            'tool': 'jsosint v2.0'
+
+        self.results["metadata"] = {
+            "target": target,
+            "scan_type": scan_type,
+            "timestamp": datetime.now().isoformat(),
+            "tool": "jsosint v2.0",
         }
-        
-        # Display summary
-        print(f"\n{self.colors.GREEN}{'='*70}{self.colors.RESET}")
-        print(f"{self.colors.GREEN}[+]{self.colors.RESET} SCAN COMPLETED SUCCESSFULLY")
-        print(f"{self.colors.GREEN}{'='*70}{self.colors.RESET}")
-        
-        # Show summary
-        self._display_summary()
-        
-        # Save to file if requested
+
+        print(f"{self.colors.GREEN}[+] Scan completed{self.colors.RESET}")
+        self._display_summary(scan_type)
+
         if options.output:
-            try:
-                # Simple file saving if ReportGenerator doesn't exist
-                filename = options.output
-                if not filename.endswith('.json'):
-                    filename += '.json'
-                with open(filename, 'w') as f:
-                    json.dump(self.results, f, indent=2)
-                print(f"\n{self.colors.GREEN}[+]{self.colors.RESET} Results saved to: {filename}")
-            except Exception as e:
-                print(f"\n{self.colors.RED}[!]{self.colors.RESET} Failed to save results: {e}")
-        
-        # Show next steps
-        print(f"\n{self.colors.CYAN}[*]{self.colors.RESET} Next steps:")
-        print(f"   • Review the results above")
-        print(f"   • Use --output to save detailed results")
-        print(f"   • Check generated files for further analysis")
-    
-    def _display_summary(self):
+            filename = options.output
+            if not filename.endswith(".json"):
+                filename += ".json"
+            with open(filename, "w") as f:
+                json.dump(self.results, f, indent=2)
+            print(f"{self.colors.GREEN}[+] Saved: {filename}{self.colors.RESET}")
+
+    def _display_summary(self, scan_type):
         """Display scan summary"""
         summary = []
-        
-        if 'basic' in self.results:
-            if 'ip_address' in self.results['basic']:
-                summary.append(f"IP: {self.results['basic']['ip_address']}")
-        
-        if 'dns' in self.results:
-            if 'A' in self.results['dns']:
-                summary.append(f"A Records: {len(self.results['dns']['A'])}")
-        
-        if 'subdomains' in self.results:
-            total_subs = sum(len(v) for v in self.results['subdomains'].values() if isinstance(v, list))
-            summary.append(f"Subdomains: {total_subs}")
-        
-        if 'social_media' in self.results:
-            found = sum(1 for v in self.results['social_media'].values() if v.get('found'))
-            summary.append(f"Social Media: {found} platforms")
-        
-        if 'ports' in self.results:
-            if 'open_ports' in self.results['ports']:
-                summary.append(f"Open Ports: {len(self.results['ports']['open_ports'])}")
-        
+            # ========== WEBSITE SUMMARY ==========
+        if scan_type == "website":
+            if "basic" in self.results:
+                ip = self.results["basic"].get("ip_address")
+                if ip:
+                    summary.append(f"IP: {ip}")
+
+            if "dns" in self.results:
+                a_records = self.results["dns"].get("A")
+                if isinstance(a_records, list):
+                    summary.append(f"A Records: {len(a_records)}")
+            
+            if "technologies" in self.results:
+                techs = self.results["technologies"]
+                if isinstance(techs, list):
+                    summary.append(f"Technologies: {len(techs)}")
+
+            if "subdomains" in self.results:
+                subs = self.results["subdomains"]
+                if isinstance(subs, list):
+                    summary.append(f"Subdomains: {len(subs)}")
+            
+            if "directories" in self.results:
+                dirs = self.results["directories"]
+                if isinstance(dirs, list):
+                    summary.append(f"Directories Found: {len(dirs)}")
+            
+            if "emails" in self.results:
+                emails = self.results["emails"]
+                if isinstance(emails, list):
+                    summary.append(f"Emails Found: {len(emails)}")
+
+            if "social_media" in self.results:
+                found = sum(
+                    1 for v in self.results["social_media"].values()
+                    if isinstance(v, dict) and v.get("found")
+                )
+                summary.append(f"Social Media: {found} platforms")
+
+        # ========== PERSON SUMMARY ==========
+        elif scan_type == "person":
+
+            # BASIC
+            if "basic" in self.results and isinstance(self.results["basic"], dict):
+                name = self.results["basic"].get("name")
+                if name:
+                    summary.append(f"Name: {name}")
+
+            # EMAILS
+            if "emails" in self.results and isinstance(self.results["emails"], dict):
+                if self.results["emails"].get("found"):
+                    summary.append("Emails: Yes")
+
+            # PHONE
+            if "phone_numbers" in self.results and isinstance(self.results["phone_numbers"], dict):
+                if self.results["phone_numbers"].get("found"):
+                    summary.append("Phone Numbers: Yes")
+
+            # IP
+            if "ip_addresses" in self.results and isinstance(self.results["ip_addresses"], dict):
+                if self.results["ip_addresses"].get("found"):
+                    summary.append("IP Address Data: Yes")
+
+            # USERNAMES
+            if "usernames" in self.results and isinstance(self.results["usernames"], dict):
+                if self.results["usernames"].get("found"):
+                    summary.append("Usernames: Yes")
+
+            # POSSIBLE NAMES
+            if "possible_names" in self.results and isinstance(self.results["possible_names"], list):
+                summary.append(f"Possible Names Found: {len(self.results['possible_names'])}")
+
+            # USERNAME VARIATIONS
+            if "username_variations" in self.results and isinstance(self.results["username_variations"], list):
+                summary.append(f"Username Variations Found: {len(self.results['username_variations'])}")
+
+            # EMAIL ANALYSIS
+            if "email_analysis" in self.results and isinstance(self.results["email_analysis"], dict):
+                a = self.results["email_analysis"]
+                summary.append(f"Valid Emails: {a.get('valid', 0)}")
+                summary.append(f"Invalid Emails: {a.get('invalid', 0)}")
+
+            # PUBLIC RECORDS
+            if "public" in self.results and isinstance(self.results["public"], dict):
+                if self.results["public"].get("found"):
+                    summary.append("Public Records: Yes")
+
+            # BREACHES
+            if "breaches" in self.results and isinstance(self.results["breaches"], dict):
+                breaches = self.results["breaches"].get("breaches", [])
+                summary.append(f"Breaches Found: {len(breaches)}")
+
+            # SOCIAL MEDIA (BASIC + ADVANCED)
+            social_found = 0
+
+            if "social_media" in self.results and isinstance(self.results["social_media"], dict):
+                for v in self.results["social_media"].values():
+                    if isinstance(v, dict) and v.get("found"):
+                        social_found += 1
+
+            if "advanced" in self.results:
+                adv = self.results["advanced"]
+                if isinstance(adv, dict) and "social_media" in adv:
+                    for v in adv["social_media"].values():
+                        if isinstance(v, dict) and v.get("found"):
+                            social_found += 1
+
+            summary.append(f"Social Platforms Found: {social_found}")
+
+            # ASSOCIATED ACCOUNTS
+            if "associated_accounts" in self.results:
+                found = 0
+                acc = self.results["associated_accounts"]
+
+                if isinstance(acc, dict):
+                    for v in acc.values():
+                        if isinstance(v, dict) and v.get("found"):
+                            found += 1
+                        elif isinstance(v, list):
+                            found += sum(1 for i in v if isinstance(i, dict) and i.get("found"))
+
+                summary.append(f"Associated Accounts Found: {found}")
+
+        # ========== NETWORK SUMMARY ==========
+        elif scan_type == "network":
+            if "scan_ports" in self.results:
+                ports = self.results["ports"]
+                if isinstance(ports, list):
+                    summary.append(
+                        "Open Ports: Yes" if ports else "Open Ports: No"
+                    )
+
+            if "detect_services" in self.results:
+                services = self.results["services"]
+                if isinstance(services, list):
+                    summary.append(f"Services Detected: {len(services)}")
+            if "_extract_html_title" in self.results:
+                title = self.results["html_title"]
+                if title:
+                    summary.append(f"HTML Title: {title}")
+            
+            if "os_detection" in self.results:
+                os_data = self.results["os"]
+                if os_data:
+                    summary.append("OS Fingerprint: Available")
+
+            #vulnerability_scan
+            if "vulnerability_scan" in self.results:
+                vulns = self.results["vulnerabilities"]
+                if isinstance(vulns, list):
+                    summary.append(f"Vulnerabilities Found: {len(vulns)}")
+            #network_discovery
+            if "network_discovery" in self.results:
+                hosts = self.results["network_discovery"]
+                if isinstance(hosts, list):
+                    summary.append(f"Discovered Hosts: {len(hosts)}")
+            #traceroute
+            if "traceroute" in self.results:
+                route = self.results["traceroute"]
+                if isinstance(route, list):
+                    summary.append(f"Traceroute Hops: {len(route)}")
+            #dns_enumeration
+            if "dns_enumeration" in self.results:
+                records = self.results["dns_enumeration"]
+                if isinstance(records, dict):
+                    summary.append(f"DNS Records Found: {len(records)}")
+            #mac_vendor
+            if "mac_vendor" in self.results:
+                vendor = self.results["mac_vendor"]
+                if vendor:
+                    summary.append(f"MAC Vendor: {vendor}")
+            #_get_mac_vendor
+            if "_get_mac_vendor" in self.results:
+                vendor = self.results["mac_vendor"]
+                if vendor:
+                    summary.append(f"MAC Vendor: {vendor}")
+
         if summary:
-            print(f"\n{self.colors.YELLOW}[📊]{self.colors.RESET} Summary: {', '.join(summary)}")
+            print(f"\n{self.colors.YELLOW}[📊]{self.colors.RESET} Summary:")
+            for item in summary:
+                print(f"   • {item}")
+
+
+# ===================== ENTRY POINT =====================
 
 def main():
-    """Main entry point"""
-    # Handle Ctrl+C
-    signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
-    
-    parser = argparse.ArgumentParser(
-        description='jsosint - Ultimate OSINT Suite v2.0',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-EXAMPLES:
-  # Complete website reconnaissance
-  jsosint website example.com --all
-  
-  # Specific website modules
-  jsosint website example.com --dns --whois --subdomains --ports
-  
-  # Complete person reconnaissance
-  jsosint person username --all --deep
-  
-  # Network scan
-  jsosint network 192.168.1.1 --ports --services --vuln
-  
-  # Save results
-  jsosint website example.com --all -o results.json
-  jsosint website example.com --all -o report.html --format html
+    signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
-MODULES:
-  Website: --basic --dns --whois --subdomains --tech --directories --emails --ports --vuln --history
-  Person:  --basic --social --emails --breaches --public --advanced
-  Network: --ports --services --os --vuln
-        """
+    parser = argparse.ArgumentParser(
+        description="jsosint - Ultimate OSINT Suite v2.0"
     )
-    
-    # Main command
-    subparsers = parser.add_subparsers(dest='command', help='Command to execute')
-    
-    # Website command
-    website_parser = subparsers.add_parser('website', help='Website reconnaissance')
-    website_parser.add_argument('target', help='Domain or IP address')
-    website_parser.add_argument('--all', action='store_true', help='Run all modules')
-    website_parser.add_argument('--basic', action='store_true', help='Basic information')
-    website_parser.add_argument('--dns', action='store_true', help='DNS enumeration')
-    website_parser.add_argument('--whois', action='store_true', help='WHOIS lookup')
-    website_parser.add_argument('--subdomains', action='store_true', help='Find subdomains')
-    website_parser.add_argument('--cert', action='store_true', help='Use certificate transparency')
-    website_parser.add_argument('--bruteforce', action='store_true', help='Use brute force')
-    website_parser.add_argument('--search', action='store_true', help='Use search engines')
-    website_parser.add_argument('--tech', action='store_true', help='Technology detection')
-    website_parser.add_argument('--directories', action='store_true', help='Directory enumeration')
-    website_parser.add_argument('--emails', action='store_true', help='Email harvesting')
-    website_parser.add_argument('--ports', action='store_true', help='Port scanning')
-    website_parser.add_argument('--vuln', action='store_true', help='Vulnerability scan')
-    website_parser.add_argument('--history', action='store_true', help='Historical data')
-    
-    # Person command
-    person_parser = subparsers.add_parser('person', help='Person reconnaissance')
-    person_parser.add_argument('target', help='Username, email, or phone')
-    person_parser.add_argument('--all', action='store_true', help='Run all modules')
-    person_parser.add_argument('--basic', action='store_true', help='Basic analysis')
-    person_parser.add_argument('--social', action='store_true', help='Social media search')
-    person_parser.add_argument('--deep', action='store_true', help='Deep social media search')
-    person_parser.add_argument('--emails', action='store_true', help='Email analysis')
-    person_parser.add_argument('--breaches', action='store_true', help='Data breach check')
-    person_parser.add_argument('--public', action='store_true', help='Public records')
-    person_parser.add_argument('--advanced', action='store_true', help='Advanced OSINT')
-    
-    # Network command
-    network_parser = subparsers.add_parser('network', help='Network scanning')
-    network_parser.add_argument('target', help='IP address or network range')
-    network_parser.add_argument('--all', action='store_true', help='Run all modules')
-    network_parser.add_argument('--ports', action='store_true', help='Port scanning')
-    network_parser.add_argument('--ports-range', default='1-1000', help='Port range (default: 1-1000)')
-    network_parser.add_argument('--timing', default='3', choices=['0','1','2','3','4','5'], 
-                               help='Timing template (0-5, default: 3)')
-    network_parser.add_argument('--services', action='store_true', help='Service detection')
-    network_parser.add_argument('--os', action='store_true', help='OS detection')
-    network_parser.add_argument('--vuln', action='store_true', help='Vulnerability scan')
-    
-    # Common options
-    for subparser in [website_parser, person_parser, network_parser]:
-        subparser.add_argument('-o', '--output', help='Output file')
-        subparser.add_argument('--format', choices=['json', 'html', 'txt', 'csv'], 
-                             default='json', help='Output format (default: json)')
-    
+
+    parser.add_argument("-v", "--version", action="store_true")
+
+    sub = parser.add_subparsers(dest="command")
+
+    web = sub.add_parser("website", aliases=["w"])
+    web.add_argument("target")
+    web.add_argument("--all", action="store_true")
+    web.add_argument("--basic", action="store_true")
+    web.add_argument("--dns", action="store_true")
+    web.add_argument("--whois", action="store_true")
+    web.add_argument("--subdomains", action="store_true")
+    web.add_argument("--tech", action="store_true")
+    web.add_argument("--directories", action="store_true")
+    web.add_argument("-o", "--output")
+
+    person = sub.add_parser("person", aliases=["p"])
+    person.add_argument("target")
+    person.add_argument("--all", action="store_true")
+    person.add_argument("--basic", action="store_true")
+    person.add_argument("--social", action="store_true")
+    person.add_argument("--deep", action="store_true")
+    person.add_argument("--emails", action="store_true")
+    person.add_argument("--breaches", action="store_true")
+    person.add_argument("--public", action="store_true")
+    person.add_argument("--advanced", action="store_true")
+    person.add_argument("-o", "--output")
+
+    net = sub.add_parser("network", aliases=["n"])
+    net.add_argument("target")
+    net.add_argument("--all", action="store_true")
+    net.add_argument("--ports", action="store_true")
+    net.add_argument("--services", action="store_true")
+    net.add_argument("--os", action="store_true")
+    net.add_argument("--vuln", action="store_true")
+    net.add_argument("-o", "--output")
+
     args = parser.parse_args()
-    
+    tool = Jsosint()
+
+    if args.version:
+        tool.show_version()
+        return
+
     if not args.command:
-        Jsosint().print_banner()
+        tool.print_banner()
         parser.print_help()
         return
-    
-    tool = Jsosint()
-    
-    try:
-        if args.command == 'website':
-            tool.run_website_recon(args.target, args)
-        elif args.command == 'person':
-            tool.run_person_recon(args.target, args)
-        elif args.command == 'network':
-            tool.run_network_scan(args.target, args)
-    
-    except Exception as e:
-        print(f"\n{Colors().RED}[!]{Colors().RESET} Fatal error: {e}")
-        sys.exit(1)
 
-if __name__ == '__main__':
+    if args.command in ("website", "w"):
+        tool.run_website_recon(args.target, args)
+    elif args.command in ("person", "p"):
+        tool.run_person_recon(args.target, args)
+    elif args.command in ("network", "n"):
+        tool.run_network_scan(args.target, args)
+
+
+if __name__ == "__main__":
     main()
