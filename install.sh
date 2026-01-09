@@ -436,13 +436,13 @@ def print_banner():
     print("╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║   ")
     print(" ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝   ")
     print(f"{colors.RESET}")
-    print(f"{colors.YELLOW}        Ultimate OSINT Toolkit v1.0{colors.RESET}")
+    print(f"{colors.YELLOW}        Ultimate OSINT Toolkit v2.0.0{colors.RESET}")
     print(f"{colors.GREEN}        For Kali Linux and other Linux distributions{colors.RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(description='jsOSINT - Ultimate OSINT Toolkit')
     parser.add_argument('--help', '-h', action='help', help='Show this help message')
-    parser.add_argument('--version', '-v', action='version', version='jsOSINT v1.0')
+    parser.add_argument('--version', '-v', action='version', version='JSOSINT v2.0.0')
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     

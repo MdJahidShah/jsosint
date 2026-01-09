@@ -72,8 +72,7 @@ class PersonRecon:
             analysis.update(self._analyze_ip())
         else:  # username
             analysis.update(self._analyze_username())
-        analysis['found'] = True
-
+        
         return analysis
     
     def _analyze_email(self):
@@ -162,8 +161,7 @@ class PersonRecon:
             
         except Exception as e:
             email_info['error'] = str(e)
-            email_info['found'] = True
-
+        
         return email_info
     
     def _analyze_phone(self):
@@ -243,7 +241,6 @@ class PersonRecon:
             
         except Exception as e:
             phone_info['error'] = str(e)
-            phone_info['found'] = phone_info.get('valid', False)
         
         return phone_info
     
@@ -307,24 +304,24 @@ class PersonRecon:
             
         except Exception as e:
             ip_info['error'] = str(e)
-            ip_info['found'] = ip_info.get('is_global', False)
         
         return ip_info
     
     def _analyze_username(self):
         """Analyze username"""
         username_info = {}
-        
+
         try:
             username = self.identifier
-            
+
+            # Basic info
             username_info = {
                 'username': username,
                 'length': len(username),
                 'lowercase': username.lower(),
                 'uppercase': username.upper()
             }
-            
+
             # Pattern analysis
             patterns = {
                 'contains_numbers': bool(re.search(r'\d', username)),
@@ -338,101 +335,88 @@ class PersonRecon:
                 'has_spaces': ' ' in username
             }
             username_info['patterns'] = patterns
-            
-            # Extract possible name
-            possible_name = self._extract_possible_name(username)
-            if possible_name:
-                username_info['possible_name'] = possible_name
-            
-            # Generate variations
-            username_info['variations'] = self._generate_username_variations(username)
-            
-            # Common username patterns
-            common_patterns = [
-                'first.last',
-                'firstlast',
-                'f.last',
-                'lastf',
-                'firstl',
-                'flast'
-            ]
-            
-            for pattern in common_patterns:
-                if '.' in username and len(username.split('.')) == 2:
-                    parts = username.split('.')
-                    username_info['pattern_detected'] = 'first.last'
-                    username_info['first_name_guess'] = parts[0].capitalize()
-                    username_info['last_name_guess'] = parts[1].capitalize()
-                    break
-            
-            # Check if it's a common handle
+
+            # Use merged method to get possible names and variations
+            possible_and_variations = self.extract_possible_and_variations()
+            if possible_and_variations:
+                # Extract possible name part
+                if 'first_name' in possible_and_variations:
+                    username_info['first_name_guess'] = possible_and_variations['first_name']
+                    username_info['last_name_guess'] = possible_and_variations['last_name']
+                elif 'name_guess' in possible_and_variations:
+                    username_info['name_guess'] = possible_and_variations['name_guess']
+
+                # Add variations list
+                username_info['variations'] = possible_and_variations.get('variations', [])
+
+            # Detect common username patterns
+            if '.' in username and len(username.split('.')) == 2:
+                parts = username.split('.')
+                username_info['pattern_detected'] = 'first.last'
+                username_info['first_name_guess'] = parts[0].capitalize()
+                username_info['last_name_guess'] = parts[1].capitalize()
+
+            # Check for common handles
             common_handles = ['admin', 'root', 'test', 'user', 'demo', 'guest']
             if username.lower() in common_handles:
                 username_info['is_common_handle'] = True
                 username_info['common_handle_type'] = 'System/Test Account'
-            
+
         except Exception as e:
             username_info['error'] = str(e)
-            username_info['found'] = True
 
         return username_info
-    
-    def extract_possible_name(self):
-        """Extract possible name from username"""
+
+    def extract_possible_and_variations(self):
+        """Extract possible name from username and generate username variations."""
         username = self.identifier
+        result = {}
+
+        # ----------------- Extract possible name -----------------
         name_parts = re.split(r'[._-]', username)
-        
         if len(name_parts) >= 2:
-            first_name = name_parts[0].capitalize()
-            last_name = name_parts[1].capitalize()
-            return {'first_name': first_name, 'last_name': last_name}
-        elif len(name_parts) == 1:
-            part = name_parts[0]
-            if len(part) > 3:
-                return {'name_guess': part.capitalize()}
+            result['first_name'] = name_parts[0].capitalize()
+            result['last_name'] = name_parts[1].capitalize()
+        elif len(name_parts) == 1 and len(name_parts[0]) > 3:
+            result['name_guess'] = name_parts[0].capitalize()
         
-        return {
-            'found': True,
-            'data': {
-                'first_name': first_name,
-                'last_name': last_name
-            }
-        }
-    
-    def generate_username_variations(self):
-        """Generate username variations"""
-        username = self.identifier
+        # Ensure result always has something
+        if not result:
+            result['name_guess'] = username.capitalize()
+
+        # ----------------- Generate username variations -----------------
         variations = set()
-        
+
         # Basic variations
         variations.add(username)
         variations.add(username.lower())
         variations.add(username.upper())
         variations.add(username.capitalize())
-        
+
         # Add common prefixes/suffixes
         prefixes = ['the', 'real', 'official', 'its', 'mr', 'ms', 'dr']
         suffixes = ['123', '01', '2020', '2021', 'xyz', 'abc']
-        
+
         for prefix in prefixes:
             variations.add(f"{prefix}{username}")
             variations.add(f"{prefix}_{username}")
             variations.add(f"{prefix}.{username}")
-        
+
         for suffix in suffixes:
             variations.add(f"{username}{suffix}")
             variations.add(f"{username}_{suffix}")
             variations.add(f"{username}.{suffix}")
-        
+
         # Leet speak variations
         leet_map = str.maketrans('aeios', '43105')
         leet_username = username.translate(leet_map)
         variations.add(leet_username)
-        
-        return {
-            'found': len(variations) > 0,
-            'variations': list(variations)
-        }
+
+        # Add variations to result
+        result['variations'] = sorted(list(variations))
+        result['total_variations'] = len(variations)
+
+        return result
 
     def email_analysis(self):
         """Comprehensive email analysis"""
@@ -636,8 +620,7 @@ class PersonRecon:
             
         except Exception as e:
             records['error'] = str(e)
-            records['found'] = True
-
+        
         return records
     
     def find_associated_accounts(self):
@@ -718,14 +701,126 @@ class PersonRecon:
                 {'name': 'Flickr', 'url': f'https://www.flickr.com/people/{username}'}
             ]
             
-            accounts['found'] = any(
-                len(v) > 0 for v in accounts.values() if isinstance(v, list)
-            )
         except Exception as e:
             accounts['error'] = str(e)
         
         return accounts
+    #website domain parser
+    def domain_url_analysis(self):
+        """
+        Check whether domains based on the identifier are registered or available
+        """
+        results = {
+            "query": self.identifier,
+            "checked_domains": []
+        }
+
+        # Common TLDs to test
+        tlds = [
+            "com", "net", "org", "io", "info", "ai"
+            "co", "xyz", "dev", "app", "me", "online"
+        ]
+
+        base = self.identifier.lower().strip()
+
+        try:
+            import whois
+        except ImportError:
+            results["error"] = "python-whois not installed"
+            return results
+
+        for tld in tlds:
+            domain = f"{base}.{tld}"
+            entry = {
+                "domain": domain,
+                "registered": False,
+                "details": {}
+            }
+
+            try:
+                w = whois.whois(domain)
+
+                # If WHOIS returns domain_name, it is registered
+                if w.domain_name:
+                    entry["registered"] = True
+                    entry["details"] = {
+                        "registrar": w.registrar,
+                        "creation_date": str(w.creation_date),
+                        "expiration_date": str(w.expiration_date),
+                        "name_servers": w.name_servers
+                    }
+
+            except Exception:
+                # WHOIS failed → very likely available
+                entry["registered"] = False
+
+            results["checked_domains"].append(entry)
+
+        return results
     
+    def SocialMediaScan(self):
+        profiles = {
+            "found_profiles": [],
+            "search_links": []
+        }
+
+        # Resolve username safely
+        if self.identifier_type == "username":
+            username = self.identifier
+        elif "@" in self.identifier:
+            username = self.identifier.split("@")[0]
+        else:
+            username = self.identifier
+
+        encoded_username = quote(username)
+
+        platforms = [
+            "facebook.com",
+            "twitter.com",
+            "instagram.com",
+            "linkedin.com",
+            "github.com",
+            "reddit.com",
+            "tiktok.com",
+            "medium.com",
+            "pinterest.com",
+            "tumblr.com",
+            "youtube.com",
+            "threads.com"
+        ]
+
+        # Prevent 403 blocks
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (OSINT Research)"
+        })
+
+        for platform in platforms:
+            profile_url = f"https://{platform}/{username}"
+
+            try:
+                r = self.session.get(
+                    profile_url,
+                    timeout=6,
+                    allow_redirects=True
+                )
+
+                # 200 = exists
+                # 301/302 = exists but redirects
+                # 403 = exists but blocked
+                if r.status_code in (200, 301, 302, 403):
+                    profiles["found_profiles"].append(profile_url)
+
+            except Exception:
+                pass
+
+            # Always add manual search links
+            profiles["search_links"].append(
+                f"https://www.google.com/search?q=site:{platform}+\"{encoded_username}\""
+            )
+
+        return profiles
+
+
     def generate_report(self, format='json'):
         """Generate comprehensive report"""
         report = {

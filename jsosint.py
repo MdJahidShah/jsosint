@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-jsosint - Ultimate OSINT Suite v2.0
+jsosint - Ultimate OSINT Suite v2.0.0
 Complete reconnaissance toolkit combining all OSINT methods
 """
 
@@ -48,7 +48,7 @@ class Jsosint:
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║               ULTIMATE OSINT SUITE v2.0                          ║
+║        ULTIMATE OSINT SUITE v2.0.0    code by jahid              ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
@@ -95,7 +95,7 @@ class Jsosint:
         if options.all or options.ports:
             self._safe_run("Open Ports", "open_ports", recon.scan_ports)
 
-        self._generate_report(target, "website", options)
+        self._generate_website_report(target, options)
 
     # ===================== PERSON =====================
 
@@ -105,43 +105,49 @@ class Jsosint:
 
         if options.all or options.basic:
             self._safe_run("Basic Analysis", "basic", recon.basic_analysis)
-        if options.all or options.emails:
-            self._safe_run("Emails", "emails", recon._analyze_email)
-        #_analyze_phone
-        if options.all or options.phone:
-            self._safe_run("Phone Numbers", "phone_numbers", recon._analyze_phone)
-        #_analyze_ip
-        if options.all or options.ip:
-            self._safe_run("IP Addresses", "ip_addresses", recon._analyze_ip)
-        #_analyze_username
-        if options.all or options.username:
-            self._safe_run("Usernames", "usernames", recon._analyze_username)
-        #extract_possible_name
-        if options.all or options.name:
-            self._safe_run("Possible Names", "possible_names", recon.extract_possible_name)
-        #generate_username_variations
-        if options.all or options.variations:
-            self._safe_run("Username Variations", "username_variations", recon.generate_username_variations)
 
-        #email_analysis
-        if options.all or options.email_analysis:
-            self._safe_run("Email Analysis", "email_analysis", recon.email_analysis)
-        #check_breaches
+        if options.all or options.username:
+            self._safe_run("Username Analysis", "username", recon._analyze_username)
+
+        if options.all or options.email:
+            self._safe_run("Email Analysis", "email", recon.email_analysis)
+
+        if options.all or options.phone:
+            self._safe_run("Phone Analysis", "phone", recon._analyze_phone)
+
+        if options.all or options.ip:
+            self._safe_run("IP Analysis", "ip", recon._analyze_ip)
+
+        if options.all or options.possible:
+            self._safe_run(
+                "Possible Names & Username Variations",
+                "possible_names_and_variations",
+                recon.extract_possible_and_variations
+            )
+
         if options.all or options.breaches:
             self._safe_run("Breaches", "breaches", recon.check_breaches)
-        #public_records
+
         if options.all or options.public:
             self._safe_run("Public Records", "public", recon.search_public_records)
-        #find_associated_accounts
-        if options.all or options.accounts:
-            self._safe_run("Associated Accounts", "associated_accounts", recon.find_associated_accounts)
-        
-        #advanced_osint
-        if options.all or options.advanced:
-            adv = AdvancedOSINT()
-            self._safe_run("Advanced OSINT", "advanced", lambda: adv.full_osint(target))
 
-        self._generate_report(target, "person", options)
+        # ===================== SOCIAL MEDIA =====================
+        if options.all or options.social:
+            self._safe_run(
+                "Social Media Finder",
+                "social_media",
+                recon.SocialMediaScan
+            )
+
+        # ===================== DOMAIN / URL =====================(need update)
+        if options.all or options.domain_url:
+            self._safe_run(
+                "Domain/URL Analysis",
+                "domain_url_analysis",
+                recon.domain_url_analysis
+            )
+
+        self._generate_person_report(target, options)
 
     # ===================== NETWORK =====================
 
@@ -213,10 +219,9 @@ class Jsosint:
             )
             #
 
-        self._generate_report(target, "network", options)
+        self._generate_network_report(target, options)
 
     # ===================== HELPERS =====================
-
     def _safe_run(self, label, key, func):
         try:
             print(f"{self.colors.CYAN}[*]{self.colors.RESET} {label}")
@@ -224,20 +229,74 @@ class Jsosint:
         except Exception as e:
             print(f"{self.colors.RED}[-]{self.colors.RESET} {label} failed: {e}")
 
-    def _generate_report(self, target, scan_type, options):
+    # ===================== WEBSITE REPORT =====================
+    def _generate_website_report(self, target, options):
         if not self.results:
             print(f"{self.colors.YELLOW}[!] No results{self.colors.RESET}")
             return
 
         self.results["metadata"] = {
             "target": target,
-            "scan_type": scan_type,
+            "scan_type": "website",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0",
+            "tool": "jsosint v2.0.0",
         }
 
-        print(f"{self.colors.GREEN}[+] Scan completed{self.colors.RESET}")
-        self._display_summary(scan_type)
+        print(f"{self.colors.GREEN}[+] Website scan completed for: {target}{self.colors.RESET}\n")
+
+        GREEN = self.colors.GREEN
+        CYAN = self.colors.CYAN
+        YELLOW = self.colors.YELLOW
+        RESET = self.colors.RESET
+        BOLD = getattr(self.colors, "BOLD", "")
+
+        printed_ids = set()  # To prevent repeated printing
+
+        def is_empty(value):
+            if value is None:
+                return True
+            if isinstance(value, dict):
+                return not any(value.values())
+            if isinstance(value, list):
+                return len(value) == 0
+            return False
+
+        def print_data(data, indent=0):
+            if id(data) in printed_ids:
+                return
+            printed_ids.add(id(data))
+
+            prefix = "  " * indent
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    header = f"{BOLD}{CYAN}[{str(k).upper()}]{RESET}"
+                    if isinstance(v, (dict, list)):
+                        print(f"{prefix}{header}")
+                        print_data(v, indent + 1)
+                    else:
+                        print(f"{prefix}{header}: {v}")
+            elif isinstance(data, list):
+                if not data:
+                    print(f"{prefix}{YELLOW}No data found{RESET}")
+                    return
+                for item in data:
+                    if isinstance(item, (dict, list)):
+                        print_data(item, indent)
+                    else:
+                        print(f"{prefix}- {item}")
+            else:
+                print(f"{prefix}{data}")
+
+        for key, value in self.results.items():
+            if key == "metadata":
+                continue
+            title = f"{BOLD}{CYAN}[{key.upper()}]{RESET}"
+            print(title)
+            if is_empty(value):
+                print(f"  {YELLOW}No data found{RESET}")
+            else:
+                print_data(value, indent=1)
+            print(f"{BOLD}{'-' * 60}{RESET}")
 
         if options.output:
             filename = options.output
@@ -245,7 +304,163 @@ class Jsosint:
                 filename += ".json"
             with open(filename, "w") as f:
                 json.dump(self.results, f, indent=2)
-            print(f"{self.colors.GREEN}[+] Saved: {filename}{self.colors.RESET}")
+            print(f"{GREEN}[+] Saved: {filename}{RESET}")
+
+
+    # ===================== PERSON REPORT =====================
+    def _generate_person_report(self, target, options):
+        if not self.results:
+            print(f"{self.colors.YELLOW}[!] No results{self.colors.RESET}")
+            return
+
+        self.results["metadata"] = {
+            "target": target,
+            "scan_type": "person",
+            "timestamp": datetime.now().isoformat(),
+            "tool": "jsosint v2.0.0",
+        }
+
+        print(f"{self.colors.GREEN}[+] Person scan completed for: {target}{self.colors.RESET}\n")
+
+        GREEN = self.colors.GREEN
+        CYAN = self.colors.CYAN
+        YELLOW = self.colors.YELLOW
+        RESET = self.colors.RESET
+        BOLD = getattr(self.colors, "BOLD", "")
+
+        printed_ids = set()
+
+        def is_empty(value):
+            if value is None:
+                return True
+            if isinstance(value, dict):
+                return not any(value.values())
+            if isinstance(value, list):
+                return len(value) == 0
+            return False
+
+        def print_data(data, indent=0):
+            if id(data) in printed_ids:
+                return
+            printed_ids.add(id(data))
+
+            prefix = "  " * indent
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    header = f"{BOLD}{CYAN}[{str(k).upper()}]{RESET}"
+                    if isinstance(v, (dict, list)):
+                        print(f"{prefix}{header}")
+                        print_data(v, indent + 1)
+                    else:
+                        print(f"{prefix}{header}: {v}")
+            elif isinstance(data, list):
+                if not data:
+                    print(f"{prefix}{YELLOW}No data found{RESET}")
+                    return
+                for item in data:
+                    if isinstance(item, (dict, list)):
+                        print_data(item, indent)
+                    else:
+                        print(f"{prefix}- {item}")
+            else:
+                print(f"{prefix}{data}")
+
+        for key, value in self.results.items():
+            if key == "metadata":
+                continue
+            title = f"{BOLD}{CYAN}[{key.upper()}]{RESET}"
+            print(title)
+            if is_empty(value):
+                print(f"  {YELLOW}No data found{RESET}")
+            else:
+                print_data(value, indent=1)
+            print(f"{BOLD}{'-' * 60}{RESET}")
+
+        if options.output:
+            filename = options.output
+            if not filename.endswith(".json"):
+                filename += ".json"
+            with open(filename, "w") as f:
+                json.dump(self.results, f, indent=2)
+            print(f"{GREEN}[+] Saved: {filename}{RESET}")
+
+
+    # ===================== NETWORK REPORT =====================
+    def _generate_network_report(self, target, options):
+        if not self.results:
+            print(f"{self.colors.YELLOW}[!] No results{self.colors.RESET}")
+            return
+
+        self.results["metadata"] = {
+            "target": target,
+            "scan_type": "network",
+            "timestamp": datetime.now().isoformat(),
+            "tool": "jsosint v2.0.0",
+        }
+
+        print(f"{self.colors.GREEN}[+] Network scan completed for: {target}{self.colors.RESET}\n")
+
+        GREEN = self.colors.GREEN
+        CYAN = self.colors.CYAN
+        YELLOW = self.colors.YELLOW
+        RESET = self.colors.RESET
+        BOLD = getattr(self.colors, "BOLD", "")
+
+        printed_ids = set()
+
+        def is_empty(value):
+            if value is None:
+                return True
+            if isinstance(value, dict):
+                return not any(value.values())
+            if isinstance(value, list):
+                return len(value) == 0
+            return False
+
+        def print_data(data, indent=0):
+            if id(data) in printed_ids:
+                return
+            printed_ids.add(id(data))
+
+            prefix = "  " * indent
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    header = f"{BOLD}{CYAN}[{str(k).upper()}]{RESET}"
+                    if isinstance(v, (dict, list)):
+                        print(f"{prefix}{header}")
+                        print_data(v, indent + 1)
+                    else:
+                        print(f"{prefix}{header}: {v}")
+            elif isinstance(data, list):
+                if not data:
+                    print(f"{prefix}{YELLOW}No data found{RESET}")
+                    return
+                for item in data:
+                    if isinstance(item, (dict, list)):
+                        print_data(item, indent)
+                    else:
+                        print(f"{prefix}- {item}")
+            else:
+                print(f"{prefix}{data}")
+
+        for key, value in self.results.items():
+            if key == "metadata":
+                continue
+            title = f"{BOLD}{CYAN}[{key.upper()}]{RESET}"
+            print(title)
+            if is_empty(value):
+                print(f"  {YELLOW}No data found{RESET}")
+            else:
+                print_data(value, indent=1)
+            print(f"{BOLD}{'-' * 60}{RESET}")
+
+        if options.output:
+            filename = options.output
+            if not filename.endswith(".json"):
+                filename += ".json"
+            with open(filename, "w") as f:
+                json.dump(self.results, f, indent=2)
+            print(f"{GREEN}[+] Saved: {filename}{RESET}")
 
     def _display_summary(self, scan_type):
         """Display scan summary"""
@@ -432,14 +647,13 @@ class Jsosint:
             for item in summary:
                 print(f"   • {item}")
 
-
 # ===================== ENTRY POINT =====================
 
 def main():
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
     parser = argparse.ArgumentParser(
-        description="jsosint - Ultimate OSINT Suite v2.0"
+        description="jsosint - Ultimate OSINT Suite v2.0.0"
     )
 
     parser.add_argument("-v", "--version", action="store_true")
@@ -447,36 +661,47 @@ def main():
     sub = parser.add_subparsers(dest="command")
 
     web = sub.add_parser("website", aliases=["w"])
-    web.add_argument("target")
-    web.add_argument("--all", action="store_true")
-    web.add_argument("--basic", action="store_true")
-    web.add_argument("--dns", action="store_true")
-    web.add_argument("--whois", action="store_true")
-    web.add_argument("--subdomains", action="store_true")
-    web.add_argument("--tech", action="store_true")
-    web.add_argument("--directories", action="store_true")
-    web.add_argument("-o", "--output")
+    web.add_argument("target", help="Target website domain or IP (e.g., example.com)")
+    web.add_argument("--all", action="store_true", help="Run all website recon modules")
+    web.add_argument("--basic", action="store_true", help="Perform basic website analysis")
+    web.add_argument("--dns", action="store_true", help="Gather DNS information")
+    web.add_argument("--whois", action="store_true", help="Perform WHOIS lookup")
+    web.add_argument("--subdomains", action="store_true", help="Find subdomains of the target")
+    web.add_argument("--tech", action="store_true", help="Detect technologies used by the website")
+    web.add_argument("--directories", action="store_true", help="Scan common directories")
+    web.add_argument("--emails", action="store_true", help="Search for publicly listed emails")
+    web.add_argument("--ports", action="store_true", help="Scan common ports (HTTP, HTTPS, etc.)")
+    web.add_argument("-o", "--output", help="Save results to a JSON file")
+
 
     person = sub.add_parser("person", aliases=["p"])
-    person.add_argument("target")
-    person.add_argument("--all", action="store_true")
-    person.add_argument("--basic", action="store_true")
-    person.add_argument("--social", action="store_true")
-    person.add_argument("--deep", action="store_true")
-    person.add_argument("--emails", action="store_true")
-    person.add_argument("--breaches", action="store_true")
-    person.add_argument("--public", action="store_true")
-    person.add_argument("--advanced", action="store_true")
-    person.add_argument("-o", "--output")
+    person.add_argument("target", help="Target person's name, username, or identifier")
+    person.add_argument("--all", action="store_true", help="Run all person recon modules")
+    person.add_argument("--basic", action="store_true", help="Perform basic person analysis")
+    person.add_argument("--username", action="store_true", help="Analyze usernames and variations")
+    person.add_argument("--email", action="store_true", help="Search for email addresses associated with the person")
+    person.add_argument("--phone", action="store_true", help="Search for phone numbers")
+    person.add_argument("--ip", action="store_true", help="Check IPs linked to the person")
+    person.add_argument("--possible", action="store_true", help="Find possible names of the person")
+    person.add_argument("--breaches", action="store_true", help="Check if the person's data appeared in breaches")
+    person.add_argument("--public", action="store_true", help="Search public records")
+    person.add_argument("--social", action="store_true", help="Search social media accounts")
+    person.add_argument("--domain_url", action="store_true", help="Check associated domain URLs")
+    person.add_argument("-o", "--output", help="Save results to a JSON file")
 
     net = sub.add_parser("network", aliases=["n"])
-    net.add_argument("target")
-    net.add_argument("--all", action="store_true")
-    net.add_argument("--ports", action="store_true")
-    net.add_argument("--services", action="store_true")
-    net.add_argument("--os", action="store_true")
-    net.add_argument("--vuln", action="store_true")
-    net.add_argument("-o", "--output")
+    net.add_argument("target", help="Target IP or network range (e.g., 192.168.1.1)")
+    net.add_argument("--all", action="store_true", help="Run all network scan modules")
+    net.add_argument("--ports", action="store_true", help="Scan for open and closed ports")
+    net.add_argument("--services", action="store_true", help="Detect services running on ports")
+    net.add_argument("--title", action="store_true", help="Get web page titles from open ports")
+    net.add_argument("--os", action="store_true", help="Perform OS detection")
+    net.add_argument("--vuln", action="store_true", help="Check for known vulnerabilities")
+    net.add_argument("--discovery", action="store_true", help="Run network discovery (hosts, subnets)")
+    net.add_argument("--mac_vendor", action="store_true", help="Identify MAC vendor info")
+    net.add_argument("--traceroute", action="store_true", help="Perform traceroute to the target")
+    net.add_argument("--dns_enum", action="store_true", help="Perform DNS enumeration")
+    net.add_argument("-o", "--output", help="Save results to a JSON file")
 
     args = parser.parse_args()
     tool = Jsosint()

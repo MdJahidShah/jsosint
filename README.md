@@ -154,33 +154,150 @@ cd jsosint
 docker build -t jsosint .
 ```
 #### Run with volume mount for results
-```bash
+<!-- ```bash
 docker run -it --rm -v $(pwd)/results:/app/results jsosint website example.com --basic
-```
+``` -->
 ---
 
 ## 🎯 Quick Start
 
-### **Basic Usage**
+### Use Cases
 
-#### Show help menu
+`jsosint` is the **Ultimate OSINT Suite v2.0.0**, designed to perform reconnaissance and information gathering on websites, persons, and networks. Below are the example use cases for each command.
+
+---
+
+#### 1. Website Recon (`website` / `w`)
+
+Scan a target website to gather technical, DNS, port, and directory information.
+
+**Basic Usage:**
+
 ```bash
-jsosint --help
+python3 jsosint.py website example.com --besic
 ```
-#### Check version
+or
+
 ```bash
-jsosint --version
+python3 jsosint.py w example.com --basic
 ```
-#### Show available modules
+
+**Options:**
+
+* `--all` : Run all available website recon modules
+* `--basic` : Perform basic analysis
+* `--dns` : Gather DNS information
+* `--whois` : Perform WHOIS lookup
+* `--subdomains` : Find subdomains
+* `--tech` : Detect technologies used
+* `--directories` : Scan common directories
+* `--emails` : Search for public emails
+* `--ports` : Scan common ports
+* `-o, --output` : Save results to a JSON file
+
+**Example with Report:**
+
 ```bash
-jsosint website --help
+python3 jsosint.py w nasa.com --all -o nasa_report.json
 ```
+
+---
+
+#### 2. Person Recon (`person` / `p`)
+
+Analyze a person’s online footprint using username, email, phone, IP, and other publicly available information.
+
+**Basic Usage:**
+
 ```bash
-jsosint person --help
+python3 jsosint.py person johndoe --basic
 ```
+or
+
 ```bash
-jsosint network --help
+python3 jsosint.py p johndoe --basic
 ```
+
+**Options:**
+
+* `--all` : Run all available person recon modules
+* `--basic` : Perform basic analysis
+* `--username` : Search by username
+* `--email` : Search by email
+* `--phone` : Search by phone number
+* `--ip` : Search by IP address
+* `--possible` : Check possible names
+* `--breaches` : Search data breaches
+* `--public` : Access public records
+* `--social` : Search social media accounts
+* `--domain_url` : Check associated domain URLs
+* `-o, --output` : Save results to a JSON file
+
+**Example with Report:**
+
+```bash
+python3 jsosint.py p janedoe --username --social -o jane_report.json
+```
+
+---
+
+#### 3. Network Scan (`network` / `n`)
+
+Perform active reconnaissance on a network, including ports, services, OS detection, and vulnerabilities.
+
+**Basic Usage:**
+
+```bash
+python3 jsosint.py network 192.168.1.1 --ports
+```
+or 
+
+```bash
+python3 jsosint.py n 192.168.1.1 --ports
+```
+
+**Options:**
+
+* `--all` : Run all available network scan modules
+* `--ports` : Scan ports
+* `--services` : Identify running services
+* `--title` : Retrieve HTTP titles
+* `--os` : Detect operating system
+* `--vuln` : Check for vulnerabilities
+* `--discovery` : Perform host discovery
+* `--mac_vendor` : Get MAC vendor info
+* `--traceroute` : Perform traceroute
+* `--dns_enum` : Enumerate DNS records
+* `-o, --output` : Save results to a JSON file
+
+**Example with Report:**
+
+```bash
+python3 jsosint.py n 192.168.1.1 --ports --services --vuln -o network_report.json
+```
+
+---
+
+#### 4. Version Check
+
+To check the current version of `jsosint`:
+
+```bash
+python3 jsosint.py --version
+```
+or
+
+```bash
+python3 jsosint.py -v
+```
+
+---
+
+### Notes
+
+* Make sure all **dependencies are installed** and the **folder structure is intact**.
+* JSON output files can be used for further analysis or reporting.
+---
 
 ### **Activate Virtual Environment**
 ```bash
@@ -188,9 +305,8 @@ jsosint network --help
 source venv/bin/activate
 
 # Your jsosint commands will now work
-jsosint --help
+python3 jsosint.py --help
 ```
-
 ---
 
 ## 🔍 Usage Examples
@@ -198,20 +314,20 @@ jsosint --help
 ### **Website Reconnaissance**
 ```bash
 # Complete website scan
-jsosint website example.com --all
+python3 jsosint.py w example.com --all
 
 # Specific modules only
-jsosint website example.com --dns --whois --subdomains --ports
+python3 jsosint.py w example.com --dns --whois --subdomains --ports
 
 # Technology detection
-jsosint website example.com --tech --directories
+python3 jsosint.py w example.com --tech --directories
 
 # Vulnerability scan
-jsosint website example.com --vuln --history
+python3 jsosint.py w example.com --vuln --history
 
 # Save results to file
-jsosint website example.com --all -o results.json
-jsosint website example.com --all -o report.html --format html
+python3 jsosint.py w example.com --all -o results.json
+python3 jsosint.py w example.com --all -o report.html --format html
 ```
 
 ### **Person Investigation**
@@ -258,7 +374,7 @@ jsosint network 192.168.1.1 --ports --timing 4
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║               ULTIMATE OSINT SUITE v2.0                          ║
+║     ULTIMATE OSINT SUITE v2.0.0  code by jahid                   ║
 ║          Complete Reconnaissance Toolkit                         ║
 ╚══════════════════════════════════════════════════════════════════╝
 
@@ -453,7 +569,7 @@ Provide the following information:
 [Brief description of the issue]
 
 ## Steps to Reproduce
-1. Command: `jsosint website example.com --all`
+1. Command: `python3 jsosint.py website example.com --all`
 2. Expected: [What should happen]
 3. Actual: [What actually happens]
 
