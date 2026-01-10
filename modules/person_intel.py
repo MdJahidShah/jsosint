@@ -63,16 +63,6 @@ class PersonRecon:
             'type': self.identifier_type,
             'timestamp': datetime.now().isoformat()
         }
-        
-        if self.identifier_type == 'email':
-            analysis.update(self._analyze_email())
-        elif self.identifier_type == 'phone':
-            analysis.update(self._analyze_phone())
-        elif self.identifier_type == 'ip':
-            analysis.update(self._analyze_ip())
-        else:  # username
-            analysis.update(self._analyze_username())
-        
         return analysis
     
     def _analyze_email(self):

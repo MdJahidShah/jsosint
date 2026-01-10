@@ -163,7 +163,7 @@ docker run -it --rm -v $(pwd)/results:/app/results jsosint website example.com -
 
 ### Use Cases
 
-`jsosint` is the **Ultimate OSINT Suite v2.0.0**, designed to perform reconnaissance and information gathering on websites, persons, and networks. Below are the example use cases for each command.
+`jsosint` is the **Ultimate OSINT Suite v2.0.1**, designed to perform reconnaissance and information gathering on websites, persons, and networks. Below are the example use cases for each command.
 
 ---
 
@@ -374,7 +374,7 @@ jsosint network 192.168.1.1 --ports --timing 4
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║     ULTIMATE OSINT SUITE v2.0.0  code by jahid                   ║
+║     ULTIMATE OSINT SUITE v2.0.1  code by jahid                   ║
 ║          Complete Reconnaissance Toolkit                         ║
 ╚══════════════════════════════════════════════════════════════════╝
 

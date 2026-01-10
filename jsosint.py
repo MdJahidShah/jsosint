@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-jsosint - Ultimate OSINT Suite v2.0.0
+jsosint - Ultimate OSINT Suite v2.0.1
 Complete reconnaissance toolkit combining all OSINT methods
 """
 
@@ -48,7 +48,7 @@ class Jsosint:
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║        ULTIMATE OSINT SUITE v2.0.0    code by jahid              ║
+║        ULTIMATE OSINT SUITE v2.0.1    code by jahid              ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
@@ -95,6 +95,8 @@ class Jsosint:
         if options.all or options.ports:
             self._safe_run("Open Ports", "open_ports", recon.scan_ports)
 
+        if options.all:
+            self._display_summary("website")
         self._generate_website_report(target, options)
 
     # ===================== PERSON =====================
@@ -118,7 +120,7 @@ class Jsosint:
         if options.all or options.ip:
             self._safe_run("IP Analysis", "ip", recon._analyze_ip)
 
-        if options.all or options.possible:
+        if options.possible:
             self._safe_run(
                 "Possible Names & Username Variations",
                 "possible_names_and_variations",
@@ -146,7 +148,7 @@ class Jsosint:
                 "domain_url_analysis",
                 recon.domain_url_analysis
             )
-
+        
         self._generate_person_report(target, options)
 
     # ===================== NETWORK =====================
@@ -218,7 +220,7 @@ class Jsosint:
                 lambda: scanner.dns_enumeration(target)
             )
             #
-
+        
         self._generate_network_report(target, options)
 
     # ===================== HELPERS =====================
@@ -228,83 +230,28 @@ class Jsosint:
             self.results[key] = func()
         except Exception as e:
             print(f"{self.colors.RED}[-]{self.colors.RESET} {label} failed: {e}")
-
+    
     # ===================== WEBSITE REPORT =====================
     def _generate_website_report(self, target, options):
         if not self.results:
-            print(f"{self.colors.YELLOW}[!] No results{self.colors.RESET}")
             return
 
         self.results["metadata"] = {
             "target": target,
             "scan_type": "website",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0.0",
+            "tool": "jsosint v2.0",
         }
-
-        print(f"{self.colors.GREEN}[+] Website scan completed for: {target}{self.colors.RESET}\n")
-
-        GREEN = self.colors.GREEN
-        CYAN = self.colors.CYAN
-        YELLOW = self.colors.YELLOW
-        RESET = self.colors.RESET
-        BOLD = getattr(self.colors, "BOLD", "")
-
-        printed_ids = set()  # To prevent repeated printing
-
-        def is_empty(value):
-            if value is None:
-                return True
-            if isinstance(value, dict):
-                return not any(value.values())
-            if isinstance(value, list):
-                return len(value) == 0
-            return False
-
-        def print_data(data, indent=0):
-            if id(data) in printed_ids:
-                return
-            printed_ids.add(id(data))
-
-            prefix = "  " * indent
-            if isinstance(data, dict):
-                for k, v in data.items():
-                    header = f"{BOLD}{CYAN}[{str(k).upper()}]{RESET}"
-                    if isinstance(v, (dict, list)):
-                        print(f"{prefix}{header}")
-                        print_data(v, indent + 1)
-                    else:
-                        print(f"{prefix}{header}: {v}")
-            elif isinstance(data, list):
-                if not data:
-                    print(f"{prefix}{YELLOW}No data found{RESET}")
-                    return
-                for item in data:
-                    if isinstance(item, (dict, list)):
-                        print_data(item, indent)
-                    else:
-                        print(f"{prefix}- {item}")
-            else:
-                print(f"{prefix}{data}")
-
-        for key, value in self.results.items():
-            if key == "metadata":
-                continue
-            title = f"{BOLD}{CYAN}[{key.upper()}]{RESET}"
-            print(title)
-            if is_empty(value):
-                print(f"  {YELLOW}No data found{RESET}")
-            else:
-                print_data(value, indent=1)
-            print(f"{BOLD}{'-' * 60}{RESET}")
 
         if options.output:
             filename = options.output
             if not filename.endswith(".json"):
                 filename += ".json"
+
             with open(filename, "w") as f:
                 json.dump(self.results, f, indent=2)
-            print(f"{GREEN}[+] Saved: {filename}{RESET}")
+
+            print(f"[+] Report saved: {filename}")
 
 
     # ===================== PERSON REPORT =====================
@@ -317,7 +264,7 @@ class Jsosint:
             "target": target,
             "scan_type": "person",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0.0",
+            "tool": "jsosint v2.0.1",
         }
 
         print(f"{self.colors.GREEN}[+] Person scan completed for: {target}{self.colors.RESET}\n")
@@ -395,7 +342,7 @@ class Jsosint:
             "target": target,
             "scan_type": "network",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0.0",
+            "tool": "jsosint v2.0.1",
         }
 
         print(f"{self.colors.GREEN}[+] Network scan completed for: {target}{self.colors.RESET}\n")
@@ -462,190 +409,61 @@ class Jsosint:
                 json.dump(self.results, f, indent=2)
             print(f"{GREEN}[+] Saved: {filename}{RESET}")
 
+    # ===================== SUMMARY REPORT =====================
     def _display_summary(self, scan_type):
-        """Display scan summary"""
-        summary = []
-            # ========== WEBSITE SUMMARY ==========
+        print(f"\n[+] {scan_type.capitalize()} Recon Summary")
+        print("-" * 50)
+
         if scan_type == "website":
-            if "basic" in self.results:
-                ip = self.results["basic"].get("ip_address")
-                if ip:
-                    summary.append(f"IP: {ip}")
+            ports = self.results.get("open_ports", [])
+            tech = self.results.get("technologies", [])
+            emails = self.results.get("emails", [])
 
-            if "dns" in self.results:
-                a_records = self.results["dns"].get("A")
-                if isinstance(a_records, list):
-                    summary.append(f"A Records: {len(a_records)}")
-            
-            if "technologies" in self.results:
-                techs = self.results["technologies"]
-                if isinstance(techs, list):
-                    summary.append(f"Technologies: {len(techs)}")
+            if ports:
+                print(f"[PORTS] Open: {', '.join(map(str, ports))}")
+            else:
+                print("[PORTS] No open ports found")
 
-            if "subdomains" in self.results:
-                subs = self.results["subdomains"]
-                if isinstance(subs, list):
-                    summary.append(f"Subdomains: {len(subs)}")
-            
-            if "directories" in self.results:
-                dirs = self.results["directories"]
-                if isinstance(dirs, list):
-                    summary.append(f"Directories Found: {len(dirs)}")
-            
-            if "emails" in self.results:
-                emails = self.results["emails"]
-                if isinstance(emails, list):
-                    summary.append(f"Emails Found: {len(emails)}")
+            if tech:
+                print(f"[TECH] {', '.join(tech)}")
+            else:
+                print("[TECH] No technologies detected")
 
-            if "social_media" in self.results:
-                found = sum(
-                    1 for v in self.results["social_media"].values()
-                    if isinstance(v, dict) and v.get("found")
-                )
-                summary.append(f"Social Media: {found} platforms")
+            if emails:
+                print(f"[EMAILS] Found: {len(emails)}")
+            else:
+                print("[EMAILS] None found")
 
-        # ========== PERSON SUMMARY ==========
         elif scan_type == "person":
+            usernames = self.results.get("username_variations", [])
+            socials = self.results.get("social_media", [])
 
-            # BASIC
-            if "basic" in self.results and isinstance(self.results["basic"], dict):
-                name = self.results["basic"].get("name")
-                if name:
-                    summary.append(f"Name: {name}")
+            if usernames:
+                print(f"[USERNAMES] Generated: {len(usernames)}")
+            else:
+                print("[USERNAMES] None")
 
-            # EMAILS
-            if "emails" in self.results and isinstance(self.results["emails"], dict):
-                if self.results["emails"].get("found"):
-                    summary.append("Emails: Yes")
+            found_socials = [s for s in socials if s.get("found")]
+            if found_socials:
+                print(f"[SOCIALS] Profiles found: {len(found_socials)}")
+            else:
+                print("[SOCIALS] No profiles found")
 
-            # PHONE
-            if "phone_numbers" in self.results and isinstance(self.results["phone_numbers"], dict):
-                if self.results["phone_numbers"].get("found"):
-                    summary.append("Phone Numbers: Yes")
-
-            # IP
-            if "ip_addresses" in self.results and isinstance(self.results["ip_addresses"], dict):
-                if self.results["ip_addresses"].get("found"):
-                    summary.append("IP Address Data: Yes")
-
-            # USERNAMES
-            if "usernames" in self.results and isinstance(self.results["usernames"], dict):
-                if self.results["usernames"].get("found"):
-                    summary.append("Usernames: Yes")
-
-            # POSSIBLE NAMES
-            if "possible_names" in self.results and isinstance(self.results["possible_names"], list):
-                summary.append(f"Possible Names Found: {len(self.results['possible_names'])}")
-
-            # USERNAME VARIATIONS
-            if "username_variations" in self.results and isinstance(self.results["username_variations"], list):
-                summary.append(f"Username Variations Found: {len(self.results['username_variations'])}")
-
-            # EMAIL ANALYSIS
-            if "email_analysis" in self.results and isinstance(self.results["email_analysis"], dict):
-                a = self.results["email_analysis"]
-                summary.append(f"Valid Emails: {a.get('valid', 0)}")
-                summary.append(f"Invalid Emails: {a.get('invalid', 0)}")
-
-            # PUBLIC RECORDS
-            if "public" in self.results and isinstance(self.results["public"], dict):
-                if self.results["public"].get("found"):
-                    summary.append("Public Records: Yes")
-
-            # BREACHES
-            if "breaches" in self.results and isinstance(self.results["breaches"], dict):
-                breaches = self.results["breaches"].get("breaches", [])
-                summary.append(f"Breaches Found: {len(breaches)}")
-
-            # SOCIAL MEDIA (BASIC + ADVANCED)
-            social_found = 0
-
-            if "social_media" in self.results and isinstance(self.results["social_media"], dict):
-                for v in self.results["social_media"].values():
-                    if isinstance(v, dict) and v.get("found"):
-                        social_found += 1
-
-            if "advanced" in self.results:
-                adv = self.results["advanced"]
-                if isinstance(adv, dict) and "social_media" in adv:
-                    for v in adv["social_media"].values():
-                        if isinstance(v, dict) and v.get("found"):
-                            social_found += 1
-
-            summary.append(f"Social Platforms Found: {social_found}")
-
-            # ASSOCIATED ACCOUNTS
-            if "associated_accounts" in self.results:
-                found = 0
-                acc = self.results["associated_accounts"]
-
-                if isinstance(acc, dict):
-                    for v in acc.values():
-                        if isinstance(v, dict) and v.get("found"):
-                            found += 1
-                        elif isinstance(v, list):
-                            found += sum(1 for i in v if isinstance(i, dict) and i.get("found"))
-
-                summary.append(f"Associated Accounts Found: {found}")
-
-        # ========== NETWORK SUMMARY ==========
         elif scan_type == "network":
-            if "scan_ports" in self.results:
-                ports = self.results["ports"]
-                if isinstance(ports, list):
-                    summary.append(
-                        "Open Ports: Yes" if ports else "Open Ports: No"
-                    )
+            open_ports = self.results.get("open_ports", [])
+            services = self.results.get("services", {})
 
-            if "detect_services" in self.results:
-                services = self.results["services"]
-                if isinstance(services, list):
-                    summary.append(f"Services Detected: {len(services)}")
-            if "_extract_html_title" in self.results:
-                title = self.results["html_title"]
-                if title:
-                    summary.append(f"HTML Title: {title}")
-            
-            if "os_detection" in self.results:
-                os_data = self.results["os"]
-                if os_data:
-                    summary.append("OS Fingerprint: Available")
+            if open_ports:
+                print(f"[PORTS] Open: {', '.join(map(str, open_ports))}")
+            else:
+                print("[PORTS] No open ports")
 
-            #vulnerability_scan
-            if "vulnerability_scan" in self.results:
-                vulns = self.results["vulnerabilities"]
-                if isinstance(vulns, list):
-                    summary.append(f"Vulnerabilities Found: {len(vulns)}")
-            #network_discovery
-            if "network_discovery" in self.results:
-                hosts = self.results["network_discovery"]
-                if isinstance(hosts, list):
-                    summary.append(f"Discovered Hosts: {len(hosts)}")
-            #traceroute
-            if "traceroute" in self.results:
-                route = self.results["traceroute"]
-                if isinstance(route, list):
-                    summary.append(f"Traceroute Hops: {len(route)}")
-            #dns_enumeration
-            if "dns_enumeration" in self.results:
-                records = self.results["dns_enumeration"]
-                if isinstance(records, dict):
-                    summary.append(f"DNS Records Found: {len(records)}")
-            #mac_vendor
-            if "mac_vendor" in self.results:
-                vendor = self.results["mac_vendor"]
-                if vendor:
-                    summary.append(f"MAC Vendor: {vendor}")
-            #_get_mac_vendor
-            if "_get_mac_vendor" in self.results:
-                vendor = self.results["mac_vendor"]
-                if vendor:
-                    summary.append(f"MAC Vendor: {vendor}")
+            if services:
+                print(f"[SERVICES] Identified: {len(services)}")
+            else:
+                print("[SERVICES] None identified")
 
-        if summary:
-            print(f"\n{self.colors.YELLOW}[📊]{self.colors.RESET} Summary:")
-            for item in summary:
-                print(f"   • {item}")
+        print("-" * 50)
 
 # ===================== ENTRY POINT =====================
 
@@ -653,7 +471,7 @@ def main():
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
     parser = argparse.ArgumentParser(
-        description="jsosint - Ultimate OSINT Suite v2.0.0"
+        description="jsosint - Ultimate OSINT Suite v2.0.1"
     )
 
     parser.add_argument("-v", "--version", action="store_true")
