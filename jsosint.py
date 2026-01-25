@@ -542,7 +542,13 @@ def main():
     sub = parser.add_subparsers(dest="command")
 
     # Website subparser
-    web = sub.add_parser("website", aliases=["w"])
+    web = sub.add_parser(
+        "website",
+        aliases=["w"],
+        usage="jsosint.py website --all target-domain",
+        description="Perform OSINT on a website",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     web.add_argument("target", help="Target website domain or IP (e.g., example.com)")
     web.add_argument("--all", action="store_true", help="Run all website recon modules")
     web.add_argument("--basic", action="store_true", help="Perform basic website analysis")
@@ -557,6 +563,13 @@ def main():
 
     # Person subparser
     person = sub.add_parser("person", aliases=["p"])
+    person = sub.add_parser(
+    "person",
+    aliases=["p"],
+    usage="jsosint.py person --all target-name",
+    description="Perform Person info scan",
+    formatter_class=argparse.RawTextHelpFormatter
+)
     person.add_argument("target", help="Target person's name, username, or identifier")
     person.add_argument("--all", action="store_true", help="Run all person recon modules")
     person.add_argument("--basic", action="store_true", help="Perform basic person analysis")
@@ -572,7 +585,13 @@ def main():
     person.add_argument("-o", "--output", help="Save results to a JSON file")
 
     # Network subparser
-    net = sub.add_parser("network", aliases=["n"])
+    net = sub.add_parser(
+        "network",
+        aliases=["n"],
+        usage="jsosint.py network --all target-ip-or-range",
+        description="Perform network scan",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     net.add_argument("target", help="Target IP or network range (e.g., 192.168.1.1)")
     net.add_argument("--all", action="store_true", help="Run all network scan modules")
     net.add_argument("--ports", action="store_true", help="Scan for open and closed ports")
