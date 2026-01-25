@@ -61,7 +61,7 @@ class Jsosint:
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║ ULTIMATE OSINT SUITE jsosint v{JSOSINT_VERSION} code by jahid      ║
+║ ULTIMATE OSINT SUITE jsosint v{JSOSINT_VERSION} code by jahid    ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
@@ -524,7 +524,11 @@ def main():
         description=f"jsosint - Ultimate OSINT Suite v{get_version()}"
     )
 
-    parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("python3 jsosint.py w -h", "python3 jsosint.py w --help", action="help", help="Show this help message and exit")
+    parser.add_argument("python3 jsosint.py p -h", "python3 jsosint.py p --help" action="help", help="Show this help message and exit")
+    parser.add_argument("python3 jsosint.py n -h", "python3 jsosint.py n --help", action="help", help="Show this help message and exit")
+    
+    parser.add_argument("-v", "--version", action="store_true", help="Show jsosint version")
     # 1. Add the argument to the parser first
     parser.add_argument("-u", "--update", action="store_true", help="Update JSOSINT")
 
