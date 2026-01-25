@@ -522,27 +522,26 @@ def main():
     import sys, signal
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
-    # Define extra_help first
+    # 1. Define extra_help first
     extra_help = (
         "python3 jsosint.py w -h, python3 jsosint.py w --help   Check website help options\n"
         "python3 jsosint.py p -h, python3 jsosint.py p --help   Check person help options\n"
         "python3 jsosint.py n -h, python3 jsosint.py n --help   Check network help options"
     )
 
-    # Now create parser with epilog
+    # 2. Now create parser with epilog
     parser = argparse.ArgumentParser(
         description=f"jsosint - Ultimate OSINT Suite v{get_version()}",
         epilog=extra_help,
         formatter_class=argparse.RawTextHelpFormatter
     )
 
-
     parser.add_argument("-v", "--version", action="store_true", help="Show jsosint version")
-    # 1. Add the argument to the parser first
     parser.add_argument("-u", "--update", action="store_true", help="Update JSOSINT")
 
     sub = parser.add_subparsers(dest="command")
 
+    # Website subparser
     web = sub.add_parser("website", aliases=["w"])
     web.add_argument("target", help="Target website domain or IP (e.g., example.com)")
     web.add_argument("--all", action="store_true", help="Run all website recon modules")
@@ -556,7 +555,7 @@ def main():
     web.add_argument("--ports", action="store_true", help="Scan common ports (HTTP, HTTPS, etc.)")
     web.add_argument("-o", "--output", help="Save results to a JSON file")
 
-
+    # Person subparser
     person = sub.add_parser("person", aliases=["p"])
     person.add_argument("target", help="Target person's name, username, or identifier")
     person.add_argument("--all", action="store_true", help="Run all person recon modules")
@@ -572,6 +571,7 @@ def main():
     person.add_argument("--domain_url", action="store_true", help="Check associated domain URLs")
     person.add_argument("-o", "--output", help="Save results to a JSON file")
 
+    # Network subparser
     net = sub.add_parser("network", aliases=["n"])
     net.add_argument("target", help="Target IP or network range (e.g., 192.168.1.1)")
     net.add_argument("--all", action="store_true", help="Run all network scan modules")
@@ -608,6 +608,7 @@ def main():
         tool.run_person_recon(args.target, args)
     elif args.command in ("network", "n"):
         tool.run_network_scan(args.target, args)
+
 # ===================== UPDATE FUNCTIONALITY =====================
 
 
