@@ -61,7 +61,7 @@ class Jsosint:
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║ ULTIMATE OSINT SUITE jsosint v{JSOSINT_VERSION} code by jahid    ║
+║ ULTIMATE OSINT SUITE jsosint v{JSOSINT_VERSION} code by jahid          ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
