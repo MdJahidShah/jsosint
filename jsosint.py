@@ -541,7 +541,7 @@ def main():
 
     sub = parser.add_subparsers(dest="command")
 
-    # Website subparser
+    # WEBSITE
     web = sub.add_parser(
         "website",
         aliases=["w"],
@@ -561,15 +561,14 @@ def main():
     web.add_argument("--ports", action="store_true", help="Scan common ports (HTTP, HTTPS, etc.)")
     web.add_argument("-o", "--output", help="Save results to a JSON file")
 
-    # Person subparser
-    person = sub.add_parser("person", aliases=["p"])
+    # PERSON
     person = sub.add_parser(
-    "person",
-    aliases=["p"],
-    usage="jsosint.py person --all target-name",
-    description="Perform Person info scan",
-    formatter_class=argparse.RawTextHelpFormatter
-)
+        "person",
+        aliases=["p"],
+        usage="jsosint.py person --all target-name",
+        description="Perform OSINT on a person",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     person.add_argument("target", help="Target person's name, username, or identifier")
     person.add_argument("--all", action="store_true", help="Run all person recon modules")
     person.add_argument("--basic", action="store_true", help="Perform basic person analysis")
@@ -584,7 +583,7 @@ def main():
     person.add_argument("--domain_url", action="store_true", help="Check associated domain URLs")
     person.add_argument("-o", "--output", help="Save results to a JSON file")
 
-    # Network subparser
+    # NETWORK
     net = sub.add_parser(
         "network",
         aliases=["n"],
