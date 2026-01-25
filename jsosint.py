@@ -522,17 +522,18 @@ def main():
     import sys, signal
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
-    parser = argparse.ArgumentParser(
-        description=f"jsosint - Ultimate OSINT Suite v{get_version()}",
-        epilog=extra_help,  # <-- display at the end of help
-        formatter_class=argparse.RawTextHelpFormatter  # <-- preserve formatting
-    )
-
-    # Extra instructions for subcommands
+    # Define extra_help first
     extra_help = (
         "python3 jsosint.py w -h, python3 jsosint.py w --help   Check website help options\n"
         "python3 jsosint.py p -h, python3 jsosint.py p --help   Check person help options\n"
         "python3 jsosint.py n -h, python3 jsosint.py n --help   Check network help options"
+    )
+
+    # Now create parser with epilog
+    parser = argparse.ArgumentParser(
+        description=f"jsosint - Ultimate OSINT Suite v{get_version()}",
+        epilog=extra_help,
+        formatter_class=argparse.RawTextHelpFormatter
     )
 
 
