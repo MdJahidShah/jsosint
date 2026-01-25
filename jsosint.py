@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-jsosint - Ultimate OSINT Suite v2.0.1
+jsosint - ULTIMATE OSINT SUITE
 Complete reconnaissance toolkit combining all OSINT methods
 """
 
@@ -10,10 +10,23 @@ import sys
 import os
 from datetime import datetime
 import signal
+import shutil
+import subprocess
 
 # Ensure local imports work
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
+
+VERSION_FILE = os.path.join(BASE_DIR, "version.txt")
+
+def get_version():
+    try:
+        with open(VERSION_FILE, "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return "0.0.0"
+JSOSINT_VERSION = get_version()
+
 
 try:
     from modules.website_intel import WebsiteRecon
@@ -48,16 +61,16 @@ class Jsosint:
 ║ ╚████║███████║╚██████╔╝███████║██║██║ ╚████║   ██║               ║
 ║  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝               ║
 ║                                                                  ║
-║        ULTIMATE OSINT SUITE v2.0.1    code by jahid              ║
+║ ULTIMATE OSINT SUITE jsosint v{JSOSINT_VERSION} code by jahid      ║
 ╚══════════════════════════════════════════════════════════════════╝
 {self.colors.RESET}
 """
 
     def print_banner(self):
         print(self.banner)
-
+    
     def show_version(self):
-        print(f"{self.colors.GREEN}[+]{self.colors.RESET} jsosint version: 2.0.0")
+        print(f"{self.colors.GREEN}[+]{self.colors.RESET} jsosint version: {JSOSINT_VERSION}")
 
     # ===================== WEBSITE =====================
 
@@ -240,7 +253,7 @@ class Jsosint:
             "target": target,
             "scan_type": "website",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0",
+            "tool": f"jsosint v{JSOSINT_VERSION}",
         }
 
         if options.output:
@@ -264,7 +277,7 @@ class Jsosint:
             "target": target,
             "scan_type": "person",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0.1",
+            "tool": f"jsosint v{JSOSINT_VERSION}",
         }
 
         print(f"{self.colors.GREEN}[+] Person scan completed for: {target}{self.colors.RESET}\n")
@@ -342,7 +355,7 @@ class Jsosint:
             "target": target,
             "scan_type": "network",
             "timestamp": datetime.now().isoformat(),
-            "tool": "jsosint v2.0.1",
+            "tool": f"jsosint v{JSOSINT_VERSION}",
         }
 
         print(f"{self.colors.GREEN}[+] Network scan completed for: {target}{self.colors.RESET}\n")
@@ -464,17 +477,56 @@ class Jsosint:
                 print("[SERVICES] None identified")
 
         print("-" * 50)
-
 # ===================== ENTRY POINT =====================
+
+def run_update(colors):
+    print(f"\n{colors.YELLOW}[i]{colors.RESET} JSOSINT Update Manager\n")
+
+    if not shutil.which("git"):
+        print(f"{colors.RED}[!]{colors.RESET} Git is not installed.")
+        sys.exit(1)
+
+    if not os.path.isdir(os.path.join(BASE_DIR, ".git")):
+        print(f"{colors.RED}[!]{colors.RESET} JSOSINT was not installed via git.")
+        print("    Auto-update is unavailable.\n")
+        sys.exit(1)
+
+    current_version = JSOSINT_VERSION
+    print(f"{colors.BLUE}[C]{colors.RESET} Current Version: {current_version}")
+
+    confirm = input("\nUpdate JSOSINT now? (Y/N): ").strip().lower()
+    if confirm != "y":
+        print("\nUpdate cancelled.\n")
+        sys.exit(0)
+
+    try:
+        subprocess.check_call(["git", "fetch", "--all"])
+        subprocess.check_call(["git", "reset", "--hard", "origin/main"])
+        subprocess.check_call(["git", "clean", "-fd"])
+
+        if os.path.isfile("requirements.txt"):
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "-r", "requirements.txt"
+            ])
+
+        print(f"\n{colors.GREEN}[✓]{colors.RESET} JSOSINT updated successfully.")
+        print("    All tool files were replaced. Restart required.\n")
+
+    except subprocess.CalledProcessError:
+        print(f"{colors.RED}[!]{colors.RESET} Update failed. Please update manually.\n")
+
+    sys.exit(0)
 
 def main():
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
     parser = argparse.ArgumentParser(
-        description="jsosint - Ultimate OSINT Suite v2.0.1"
+        description=f"jsosint - Ultimate OSINT Suite v{get_version()}"
     )
 
     parser.add_argument("-v", "--version", action="store_true")
+    # 1. Add the argument to the parser first
+    parser.add_argument("-u", "--update", action="store_true", help="Update JSOSINT")
 
     sub = parser.add_subparsers(dest="command")
 
@@ -524,6 +576,10 @@ def main():
     args = parser.parse_args()
     tool = Jsosint()
 
+    if args.update:
+        run_update(tool.colors)
+        return
+
     if args.version:
         tool.show_version()
         return
@@ -539,6 +595,7 @@ def main():
         tool.run_person_recon(args.target, args)
     elif args.command in ("network", "n"):
         tool.run_network_scan(args.target, args)
+# ===================== UPDATE FUNCTIONALITY =====================
 
 
 if __name__ == "__main__":
