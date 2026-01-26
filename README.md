@@ -76,49 +76,119 @@
 ### **Prerequisites**
 - **Kali Linux 2023+** (Recommended) or **Ubuntu 20.04+**
 - **Python 3.9+** (`python3 --version`) and **Pip 23+** (`pip --version`)
-<!-- - **5GB+ free disk space** for tools and wordlists -->
 
-### **Method 1: Quick Installation (Recommended)**
+### Method 1: Clean Installation (Recommended)
 
-#### Clone the repository
+#### 1. Clone the repository
 ```bash
 git clone https://github.com/mdjahidshah/jsosint.git
-```
-```bash
 cd jsosint
 ```
-#### Create and activate virtual environment
+
+---
+
+#### 2. Install Python 3.9 (Recommended)
+
+> Python 3.9–3.10 is recommended for best compatibility.
+> Python 3.10+ is experimental and may fail due to third-party dependencies.
+
 ```bash
-sudo python3 -m venv venv
+sudo apt update
+sudo apt install -y python3.9 python3.9-venv python3.9-dev
 ```
+
+Verify:
+
+```bash
+python3.9 --version
+```
+---
+
+#### 3. Create and activate virtual environment (NO sudo)
+
+```bash
+python3.9 -m venv venv
+```
+
 ```bash
 source venv/bin/activate
 ```
-#### Install Python dependencies
+
+Verify:
+
 ```bash
-pip3 install --upgrade pip
+python --version
 ```
+
+---
+
+#### 4. Upgrade pip and build tools
+
 ```bash
-pip3 install -r requirements.txt
+python -m pip install --upgrade pip setuptools wheel
 ```
-#### Install system dependencies
+
+---
+
+#### 5. Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+#### 6. Install system dependencies
+
 ```bash
 chmod +x system_requirements.sh
 ```
 ```bash
 ./system_requirements.sh
 ```
-#### Run the main installer
+
+---
+
+#### 7. Run the installer
+
 ```bash
 chmod +x install.sh
 ```
 ```bash
 ./install.sh
 ```
-#### Verify installation
+
+---
+
+#### 8. Verify installation (Optional)
+
 ```bash
-python3 check_deps.py
+python check_deps.py
 ```
+
+---
+
+#### 9. Check version
+
+```bash
+python jsosint.py --version
+```
+
+If the version is displayed, the installation was successful.
+
+---
+
+#### Important Notes (Read This)
+
+* Always activate the virtual environment before running JSOSINT
+* If you face issues, remove the venv and recreate it:
+
+```bash
+deactivate
+```
+
+---
+
 
 ### **Method 2: Manual Installation**
 
