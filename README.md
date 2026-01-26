@@ -75,7 +75,7 @@
 
 ### **Prerequisites**
 - **Kali Linux 2023+** (Recommended) or **Ubuntu 20.04+**
-- **Python 3.9+** (`python3 --version`)
+- **Python 3.9+** (`python3 --version`) and **Pip 23+** (`pip --version`)
 <!-- - **5GB+ free disk space** for tools and wordlists -->
 
 ### **Method 1: Quick Installation (Recommended)**
