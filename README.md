@@ -60,7 +60,7 @@
 - **Traceroute** - Network path analysis
 - **DNS Enumeration** - Zone transfers and record analysis
 
-### 🔧 **Advanced Features**
+### 🔧 **Advanced Integrated Features**
 - **Kali Tools Integration** - Direct interface to nmap, masscan, dnsrecon, nikto, sqlmap, etc.
 - **Multi-threaded Scanning** - Fast parallel execution
 - **Multiple Output Formats** - JSON, HTML, CSV, TXT reports
@@ -83,26 +83,36 @@
 #### Clone the repository
 ```bash
 git clone https://github.com/mdjahidshah/jsosint.git
+```
+```bash
 cd jsosint
 ```
 #### Create and activate virtual environment
 ```bash
 sudo python3 -m venv venv
+```
+```bash
 source venv/bin/activate
 ```
 #### Install Python dependencies
 ```bash
 pip3 install --upgrade pip
+```
+```bash
 pip3 install -r requirements.txt
 ```
 #### Install system dependencies
 ```bash
 chmod +x system_requirements.sh
+```
+```bash
 ./system_requirements.sh
 ```
 #### Run the main installer
 ```bash
 chmod +x install.sh
+```
+```bash
 ./install.sh
 ```
 #### Verify installation
