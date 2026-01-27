@@ -73,124 +73,132 @@
 
 ## 📦 Installation
 
+JSOSINT is an OSINT automation framework designed to run reliably across Linux environments including Kali Linux, Ubuntu, VirtualBox, and Windows Subsystem for Linux (WSL).
+
 ### **Prerequisites**
 - **Kali Linux 2023+** (Recommended) or **Ubuntu 20.04+**
-- **Python 3.9+** (`python3 --version`) and **Pip 23+** (`pip --version`)
 
-### Method 1: Clean Installation (Recommended)
+#### 🐍 Python Requirement
+- **Python 3.9+** or Higher (`python3 --version`)
 
-#### 1. Clone the repository
+The tool works with the **system-installed Python version** provided by your distribution.  
+No specific minor version (e.g. 3.9, 3.10, 3.13) is hard-coded.
+
+Supported environments:
+- Kali Linux (Rolling)
+- Ubuntu / Debian
+- VirtualBox
+- Windows Subsystem for Linux (WSL)
+
+---
+
+### Method 1: Clean Installation (Stable Release - Recommended)
+
+#### 1️⃣ Install System Dependencies
+
 ```bash
-git clone https://github.com/mdjahidshah/jsosint.git
+sudo apt update
+sudo apt install -y python3 python3-venv python3-dev git
+````
+
+Verify Python version:
+
+```bash
+python3 --version
+```
+
+---
+
+#### 2️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/MdJahidShah/jsosint.git
 cd jsosint
 ```
 
 ---
 
-#### 2. Install Python 3.9 (Recommended)
-
-> Python 3.9–3.10 is recommended for best compatibility.
-> Python 3.10+ is experimental and may fail due to third-party dependencies.
+#### 3️⃣ Create & Activate Virtual Environment
 
 ```bash
-sudo apt update
-sudo apt install -y python3.9 python3.9-venv python3.9-dev
-```
-
-Verify:
-
-```bash
-python3.9 --version
-```
----
-
-#### 3. Create and activate virtual environment (NO sudo)
-
-```bash
-python3.9 -m venv venv
-```
-
-```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
-Verify:
-
-```bash
-python --version
-```
-
 ---
 
-#### 4. Upgrade pip and build tools
+#### 4️⃣ Upgrade pip & Install Python Dependencies
 
 ```bash
-python -m pip install --upgrade pip setuptools wheel
-```
-
----
-
-#### 5. Install Python dependencies
-
-```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ---
 
-#### 6. Install system dependencies
+#### 5️⃣ Install System-Level Requirements
 
 ```bash
 chmod +x system_requirements.sh
-```
-```bash
 ./system_requirements.sh
 ```
 
 ---
 
-#### 7. Run the installer
+#### 6️⃣ Run the Main Installer
 
 ```bash
 chmod +x install.sh
-```
-```bash
 ./install.sh
 ```
 
 ---
 
-#### 8. Verify installation (Optional)
+#### 7️⃣ Verify Installation (Optional)
 
 ```bash
-python check_deps.py
+python3 check_deps.py
 ```
 
 ---
 
-#### 9. Check version
+#### 8️⃣ Check JSOSINT Version
 
 ```bash
-python jsosint.py --version
+python3 jsosint.py --version
 ```
 
-If the version is displayed, the installation was successful.
+If the version is displayed, the installation was successful ✅
 
 ---
 
-#### Important Notes (Read This)
+### 🧩 Notes for WSL Users
 
-* Always activate the virtual environment before running JSOSINT
-* If you face issues, remove the venv and recreate it:
-
-```bash
-deactivate
-```
+* Some Python minor versions (e.g. `python3.9`) are **not available via `apt`** in modern distributions.
+* This is **expected behavior**.
+* JSOSINT works correctly using the **default Python version** installed on your system.
 
 ---
 
+### 🛠 Troubleshooting
 
-### **Method 2: Manual Installation**
+#### Permission Errors Inside Virtual Environment
+
+If you see permission-related errors:
+
+```bash
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+📘 **Usage:**
+[Click here to see how to use JSOSINT](https://github.com/MdJahidShah/jsosint?tab=readme-ov-file#activate-virtual-environment) or **Watch this video:** [How to use JSOSINT](https://github.com/MdJahidShah/jsosint?tab=readme-ov-file#activate-virtual-environment)
+
+---
+
+### **Method 2: Manual Installation** (just for VirtualBox or VMware)
 
 #### Clone repository
 ```bash
