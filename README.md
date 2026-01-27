@@ -403,6 +403,9 @@ python3 jsosint.py --help
 # Complete website scan
 python3 jsosint.py w example.com --all
 
+# Basic Website Recon
+python3 jsosint.py w example.com --basic
+
 # Specific modules only
 python3 jsosint.py w example.com --dns --whois --subdomains --ports
 
