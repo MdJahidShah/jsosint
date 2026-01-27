@@ -539,7 +539,8 @@ def main():
     parser.add_argument("-v", "--version", action="store_true", help="Show jsosint version")
     parser.add_argument("-u", "--update", action="store_true", help="Update JSOSINT")
 
-    sub = parser.add_subparsers(dest="command", required=True)
+    sub = parser.add_subparsers(dest="command")
+
 
     # WEBSITE
     web = sub.add_parser(
